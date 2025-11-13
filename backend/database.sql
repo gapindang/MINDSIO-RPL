@@ -1,8 +1,6 @@
--- Create Database
 CREATE DATABASE IF NOT EXISTS mindsio;
 USE mindsio;
 
--- Create Users Table (Admin, Guru, Siswa)
 CREATE TABLE users (
   id VARCHAR(36) PRIMARY KEY,
   username VARCHAR(100) NOT NULL UNIQUE,
@@ -21,7 +19,6 @@ CREATE TABLE users (
   INDEX idx_nip (nip)
 );
 
--- Create Tahun Ajaran Table
 CREATE TABLE tahun_ajaran (
   id VARCHAR(36) PRIMARY KEY,
   tahun_ajaran VARCHAR(20) NOT NULL,
@@ -34,7 +31,6 @@ CREATE TABLE tahun_ajaran (
   INDEX idx_aktif (is_aktif)
 );
 
--- Create Kelas Table
 CREATE TABLE kelas (
   id VARCHAR(36) PRIMARY KEY,
   nama_kelas VARCHAR(50) NOT NULL,
@@ -48,7 +44,6 @@ CREATE TABLE kelas (
   INDEX idx_tahun_ajaran (tahun_ajaran_id)
 );
 
--- Create Siswa-Kelas Relationship
 CREATE TABLE siswa_kelas (
   id VARCHAR(36) PRIMARY KEY,
   siswa_id VARCHAR(36) NOT NULL,
@@ -61,7 +56,6 @@ CREATE TABLE siswa_kelas (
   INDEX idx_kelas (kelas_id)
 );
 
--- Create Mata Pelajaran Table
 CREATE TABLE mata_pelajaran (
   id VARCHAR(36) PRIMARY KEY,
   nama_mapel VARCHAR(100) NOT NULL,
@@ -72,7 +66,6 @@ CREATE TABLE mata_pelajaran (
   INDEX idx_guru (guru_id)
 );
 
--- Create Guru-Mapel Assignment
 CREATE TABLE guru_mapel (
   id VARCHAR(36) PRIMARY KEY,
   guru_id VARCHAR(36) NOT NULL,
@@ -88,7 +81,6 @@ CREATE TABLE guru_mapel (
   INDEX idx_kelas (kelas_id)
 );
 
--- Create Nilai (Grades) Table
 CREATE TABLE nilai (
   id VARCHAR(36) PRIMARY KEY,
   siswa_id VARCHAR(36) NOT NULL,
@@ -114,7 +106,6 @@ CREATE TABLE nilai (
   INDEX idx_tahun_ajaran (tahun_ajaran_id)
 );
 
--- Create Rapor Table (Summary)
 CREATE TABLE rapor (
   id VARCHAR(36) PRIMARY KEY,
   siswa_id VARCHAR(36) NOT NULL,
@@ -132,7 +123,6 @@ CREATE TABLE rapor (
   INDEX idx_kelas (kelas_id)
 );
 
--- Create MBTI Hasil Tes Table
 CREATE TABLE mbti_hasil (
   id VARCHAR(36) PRIMARY KEY,
   siswa_id VARCHAR(36) NOT NULL UNIQUE,
@@ -152,7 +142,6 @@ CREATE TABLE mbti_hasil (
   INDEX idx_mbti_type (mbti_type)
 );
 
--- Create Gaya Belajar Reference Table
 CREATE TABLE gaya_belajar_referensi (
   id VARCHAR(36) PRIMARY KEY,
   mbti_type VARCHAR(10) NOT NULL UNIQUE,
@@ -167,7 +156,6 @@ CREATE TABLE gaya_belajar_referensi (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create Aktivitas Log Table
 CREATE TABLE aktivitas_log (
   id VARCHAR(36) PRIMARY KEY,
   user_id VARCHAR(36),
@@ -182,11 +170,6 @@ CREATE TABLE aktivitas_log (
   INDEX idx_user_id (user_id)
 );
 
--- Insert default Tahun Ajaran
-INSERT INTO tahun_ajaran (tahun_ajaran, semester, tanggal_mulai, tanggal_selesai, is_aktif) 
-VALUES ('2024/2025', 1, '2024-07-01', '2024-12-31', TRUE);
-
--- Insert default MBTI Reference Data (16 types)
 INSERT INTO gaya_belajar_referensi (id, mbti_type, nama_tipe, deskripsi, gaya_belajar, tips_1, tips_2, tips_3, tips_4, tips_5) VALUES
 (UUID(), 'ISTJ', 'The Logistician', 'Praktis, bertanggung jawab, dan terorganisir', 'Systematic & Structured', 'Ikuti struktur dan jadwal yang jelas', 'Pelajari dari sumber terpercaya', 'Praktek dengan konsistensi', 'Fokus pada detail penting', 'Atur waktu belajar dengan baik'),
 (UUID(), 'ISFJ', 'The Defender', 'Dedicated, penuh kasih sayang, dan detail', 'Hands-on & Collaborative', 'Belajar dalam kelompok kecil', 'Hubungkan dengan pengalaman nyata', 'Butuh persetujuan dan feedback', 'Fokus pada aplikasi praktis', 'Ciptakan lingkungan nyaman'),
@@ -205,7 +188,6 @@ INSERT INTO gaya_belajar_referensi (id, mbti_type, nama_tipe, deskripsi, gaya_be
 (UUID(), 'ENFJ', 'The Protagonist', 'Karismatik, empati, dan pemimpin', 'Interactive & Motivational', 'Inspirasi dari nilai-nilai besar', 'Motivasi orang lain sambil belajar', 'Diskusi yang bermakna', 'Hubungan personal penting', 'Kepemimpinan dalam pembelajaran'),
 (UUID(), 'ENTJ', 'The Commander', 'Strategis, decisive, dan powerful', 'Logical & Goal-driven', 'Tujuan pembelajaran yang jelas', 'Efisiensi waktu dan sumber daya', 'Kuasai topik secara menyeluruh', 'Aplikasi praktis langsung', 'Tantang diri dengan standar tinggi');
 
--- Create indexes for better performance
 CREATE INDEX idx_users_role_active ON users(role, is_active);
 CREATE INDEX idx_nilai_siswa_tahun ON nilai(siswa_id, tahun_ajaran_id);
 CREATE INDEX idx_siswa_kelas_tahun ON siswa_kelas(siswa_id);

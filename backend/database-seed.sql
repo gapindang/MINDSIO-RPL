@@ -1,10 +1,9 @@
 USE mindsio;
 
--- Note: Default tahun_ajaran (2024/2025, Semester 1) sudah ada di database.sql
--- Hanya tambahkan data tahun ajaran tambahan jika perlu
 INSERT INTO tahun_ajaran (id, tahun_ajaran, semester, tanggal_mulai, tanggal_selesai, is_aktif) VALUES
 ('550e8400-e29b-41d4-a716-446655440001', '2023/2024', 1, '2023-07-01', '2023-12-31', FALSE),
 ('550e8400-e29b-41d4-a716-446655440002', '2023/2024', 2, '2024-01-01', '2024-06-30', FALSE),
+('550e8400-e29b-41d4-a716-446655440003', '2024/2025', 1, '2024-07-01', '2024-12-31', TRUE),
 ('550e8400-e29b-41d4-a716-446655440004', '2024/2025', 2, '2025-01-01', '2025-06-30', FALSE);
 
 INSERT INTO users (id, username, email, password, role, nama_lengkap, is_active) VALUES
@@ -127,15 +126,3 @@ INSERT INTO mbti_hasil (id, siswa_id, mbti_type, deskripsi, kekuatan_1, kekuatan
 ('550e8400-e29b-41d4-a716-446655440a08', '550e8400-e29b-41d4-a716-446655440308', 'INTJ', 'Architect - Strategis, independen, dan visioner', 'Strategis', 'Independen', 'Visi', 'Belajar mandiri mendalam', 'Belajar mandiri dengan struktur terencana dan riset mendalam', 'Pahami teori fundamental sebelum aplikasi praktis', 'Rencanakan jangka panjang dan kritik analisis materi'),
 ('550e8400-e29b-41d4-a716-446655440a09', '550e8400-e29b-41d4-a716-446655440309', 'ESFP', 'Entertainer - Enthusiastik, sosial, dan fleksibel', 'Energi', 'Sosial', 'Kepositifan', 'Belajar dengan aksi', 'Belajar dengan aksi nyata melalui pembelajaran interaktif', 'Ikuti aktivitas pembelajaran yang menghibur dan dinamis', 'Variasi metode belajar dan diskusi energik dengan teman'),
 ('550e8400-e29b-41d4-a716-446655440a10', '550e8400-e29b-41d4-a716-446655440310', 'INFJ', 'Advocate - Perasa, intuitif, dan idealis', 'Intuisi', 'Empati', 'Kepedulian', 'Belajar dengan refleksi', 'Refleksi mendalam tentang dampak sosial dari pembelajaran', 'Koneksi emosional dengan materi dan mentoring dari guru', 'Eksplorasi makna pembelajaran dan dampak sosialnya');
-
-INSERT INTO gaya_belajar_referensi (id, mbti_type, nama_tipe, deskripsi, gaya_belajar, tips_1, tips_2, tips_3, tips_4, tips_5) VALUES
-('550e8400-e29b-41d4-a716-446655440b01', 'ISTJ', 'Logistician', 'Praktis, terorganisir, bertanggung jawab', 'Sistematis', 'Buat jadwal belajar terstruktur', 'Gunakan catatan yang terorganisir', 'Pahami konsep dasar sebelum detail', 'Praktik dengan latihan rutin', 'Ciptakan lingkungan belajar tenang'),
-('550e8400-e29b-41d4-a716-446655440b02', 'ENTJ', 'Commander', 'Pemimpin, strategis, tegas', 'Kompetitif', 'Tetapkan target ambisius', 'Pelajari konsep besar dulu', 'Debat dan diskusi mendalam', 'Cari tantangan akademik', 'Analisis strategi belajar'),
-('550e8400-e29b-41d4-a716-446655440b03', 'ISFP', 'Adventurer', 'Artistik, fleksibel, loyal', 'Praktik langsung', 'Belajar dengan contoh konkret', 'Gunakan metode visual', 'Praktik hands-on', 'Ciptakan suasana nyaman', 'Belajar sesuai kecepatan sendiri'),
-('550e8400-e29b-41d4-a716-446655440b04', 'ESFJ', 'Consul', 'Sosial, perhatian, kooperatif', 'Kelompok', 'Studi kelompok aktif', 'Diskusi dengan teman', 'Minta feedback positif', 'Kolaborasi dalam proyek', 'Sharing pengetahuan dengan teman'),
-('550e8400-e29b-41d4-a716-446655440b05', 'ISTP', 'Virtuoso', 'Logis, independen, praktis', 'Problem-solving', 'Eksperimen dan trial-error', 'Pelajari cara kerja sistem', 'Praktik dengan proyek nyata', 'Analisis masalah logis', 'Belajar saat dibutuhkan'),
-('550e8400-e29b-41d4-a716-446655440b06', 'INFP', 'Mediator', 'Idealis, kreatif, empati', 'Bermakna', 'Temukan makna dalam materi', 'Koneksi dengan nilai pribadi', 'Tuliskan refleksi pembelajaran', 'Kreatif ekspresikan ide', 'Belajar dengan passion'),
-('550e8400-e29b-41d4-a716-446655440b07', 'ENFP', 'Campaigner', 'Antusias, kreatif, spontan', 'Eksplorasi', 'Pelajari berbagai perspektif', 'Buat koneksi antar topik', 'Gunakan media visual', 'Variasi metode belajar', 'Ikuti minat dan passion'),
-('550e8400-e29b-41d4-a716-446655440b08', 'INTJ', 'Architect', 'Strategis, independen, visioner', 'Mendalam', 'Belajar mandiri terstruktur', 'Pahami teori fundamental', 'Riset tema mendalam', 'Kritik analisis materi', 'Rencanakan jangka panjang'),
-('550e8400-e29b-41d4-a716-446655440b09', 'ESFP', 'Entertainer', 'Energik, sosial, fleksibel', 'Aksi', 'Belajar dengan aksi nyata', 'Ikuti pembelajaran interaktif', 'Belajar sambil bermain', 'Diskusi energik', 'Variasi aktivitas belajar'),
-('550e8400-e29b-41d4-a716-446655440b10', 'INFJ', 'Advocate', 'Intuitif, empati, idealis', 'Refleksi', 'Refleksi mendalam', 'Koneksi emosional materi', 'Belajar dengan makna', 'Mentoring dan bimbingan', 'Eksplorasi dampak sosial');
