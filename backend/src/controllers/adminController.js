@@ -185,6 +185,42 @@ const createMapel = async (req, res) => {
   }
 };
 
+const updateMapel = async (req, res) => {
+  try {
+    const { mapelId } = req.params;
+    const { nama_mapel, kode_mapel, guru_id } = req.body;
+
+    const connection = await pool.getConnection();
+
+    await connection.query(
+      "UPDATE mata_pelajaran SET nama_mapel = ?, kode_mapel = ?, guru_id = ? WHERE id = ?",
+      [nama_mapel, kode_mapel || null, guru_id || null, mapelId]
+    );
+
+    connection.release();
+
+    res.json({ message: "Mata pelajaran berhasil diperbarui" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteMapel = async (req, res) => {
+  try {
+    const { mapelId } = req.params;
+    const connection = await pool.getConnection();
+
+    await connection.query("DELETE FROM mata_pelajaran WHERE id = ?", [
+      mapelId,
+    ]);
+    connection.release();
+
+    res.json({ message: "Mata pelajaran berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getAllKelas = async (req, res) => {
   try {
     const connection = await pool.getConnection();
@@ -237,6 +273,40 @@ const createKelas = async (req, res) => {
   }
 };
 
+const updateKelas = async (req, res) => {
+  try {
+    const { kelasId } = req.params;
+    const { nama_kelas, tingkat, wali_kelas_id, tahun_ajaran_id } = req.body;
+
+    const connection = await pool.getConnection();
+
+    await connection.query(
+      "UPDATE kelas SET nama_kelas = ?, tingkat = ?, wali_kelas_id = ?, tahun_ajaran_id = ? WHERE id = ?",
+      [nama_kelas, tingkat, wali_kelas_id || null, tahun_ajaran_id, kelasId]
+    );
+
+    connection.release();
+
+    res.json({ message: "Kelas berhasil diperbarui" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteKelas = async (req, res) => {
+  try {
+    const { kelasId } = req.params;
+    const connection = await pool.getConnection();
+
+    await connection.query("DELETE FROM kelas WHERE id = ?", [kelasId]);
+    connection.release();
+
+    res.json({ message: "Kelas berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getAllTahunAjaran = async (req, res) => {
   try {
     const connection = await pool.getConnection();
@@ -283,6 +353,48 @@ const createTahunAjaran = async (req, res) => {
   }
 };
 
+const updateTahunAjaran = async (req, res) => {
+  try {
+    const { tahunId } = req.params;
+    const { tahun_ajaran, semester, tanggal_mulai, tanggal_selesai, is_aktif } =
+      req.body;
+
+    const connection = await pool.getConnection();
+
+    await connection.query(
+      "UPDATE tahun_ajaran SET tahun_ajaran = ?, semester = ?, tanggal_mulai = ?, tanggal_selesai = ?, is_aktif = ? WHERE id = ?",
+      [
+        tahun_ajaran,
+        semester,
+        tanggal_mulai || null,
+        tanggal_selesai || null,
+        is_aktif || false,
+        tahunId,
+      ]
+    );
+
+    connection.release();
+
+    res.json({ message: "Tahun ajaran berhasil diperbarui" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteTahunAjaran = async (req, res) => {
+  try {
+    const { tahunId } = req.params;
+    const connection = await pool.getConnection();
+
+    await connection.query("DELETE FROM tahun_ajaran WHERE id = ?", [tahunId]);
+    connection.release();
+
+    res.json({ message: "Tahun ajaran berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getDashboard = async (req, res) => {
   try {
     const connection = await pool.getConnection();
@@ -304,6 +416,76 @@ const getDashboard = async (req, res) => {
   }
 };
 
+const getAllRapor = async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    const [rapor] = await connection.query(`
+      SELECT 
+        r.id,
+        r.siswa_id,
+        u.nama_lengkap as siswa_nama,
+        u.nisn as siswa_nisn,
+        k.nama_kelas as kelas_nama,
+        ta.tahun_ajaran,
+        r.rata_rata_nilai,
+        r.komentar_wali_kelas,
+        r.apresiasi_wali_kelas,
+        r.tanggal_dibuat
+      FROM rapor r
+      JOIN users u ON r.siswa_id = u.id
+      JOIN kelas k ON r.kelas_id = k.id
+      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+      ORDER BY u.nama_lengkap ASC
+    `);
+
+    connection.release();
+    res.json(rapor);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getRaporById = async (req, res) => {
+  try {
+    const { raporId } = req.params;
+    const connection = await pool.getConnection();
+
+    const [rapor] = await connection.query(
+      `
+      SELECT 
+        r.id,
+        r.siswa_id,
+        u.nama_lengkap as siswa_nama,
+        u.nisn as siswa_nisn,
+        k.nama_kelas as kelas_nama,
+        ta.tahun_ajaran,
+        r.rata_rata_nilai,
+        r.komentar_wali_kelas,
+        r.apresiasi_wali_kelas,
+        r.tanggal_dibuat,
+        n.nilai_uts,
+        n.nilai_uas,
+        n.nilai_akhir,
+        mp.nama_mapel
+      FROM rapor r
+      JOIN users u ON r.siswa_id = u.id
+      JOIN kelas k ON r.kelas_id = k.id
+      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+      LEFT JOIN nilai n ON r.siswa_id = n.siswa_id AND r.tahun_ajaran_id = n.tahun_ajaran_id
+      LEFT JOIN mata_pelajaran mp ON n.mapel_id = mp.id
+      WHERE r.id = ?
+    `,
+      [raporId]
+    );
+
+    connection.release();
+    res.json(rapor[0] || {});
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -311,9 +493,17 @@ module.exports = {
   deleteUser,
   getAllMapel,
   createMapel,
+  updateMapel,
+  deleteMapel,
   getAllKelas,
   createKelas,
+  updateKelas,
+  deleteKelas,
   getAllTahunAjaran,
   createTahunAjaran,
+  updateTahunAjaran,
+  deleteTahunAjaran,
   getDashboard,
+  getAllRapor,
+  getRaporById,
 };

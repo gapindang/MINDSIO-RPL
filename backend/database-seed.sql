@@ -7,28 +7,28 @@ INSERT INTO tahun_ajaran (id, tahun_ajaran, semester, tanggal_mulai, tanggal_sel
 ('550e8400-e29b-41d4-a716-446655440004', '2024/2025', 2, '2025-01-01', '2025-06-30', FALSE);
 
 INSERT INTO users (id, username, email, password, role, nama_lengkap, is_active) VALUES
-('550e8400-e29b-41d4-a716-446655440101', 'admin1', 'admin1@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'admin', 'Admin Mindsio', TRUE),
-('550e8400-e29b-41d4-a716-446655440102', 'admin2', 'admin2@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'admin', 'Admin Sekolah', TRUE);
+('550e8400-e29b-41d4-a716-446655440101', 'admin1', 'admin1@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'admin', 'Admin Mindsio', TRUE),
+('550e8400-e29b-41d4-a716-446655440102', 'admin2', 'admin2@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'admin', 'Admin Sekolah', TRUE);
 
 INSERT INTO users (id, username, email, password, role, nama_lengkap, nip, is_active) VALUES
-('550e8400-e29b-41d4-a716-446655440201', 'guru_budi', 'budi@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'guru', 'Budi Santoso', '19800515200001001', TRUE),
-('550e8400-e29b-41d4-a716-446655440202', 'guru_siti', 'siti@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'guru', 'Siti Nurhaliza', '19851022200001002', TRUE),
-('550e8400-e29b-41d4-a716-446655440203', 'guru_ahmad', 'ahmad@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'guru', 'Ahmad Wijaya', '19800310200001003', TRUE),
-('550e8400-e29b-41d4-a716-446655440204', 'guru_dewi', 'dewi@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'guru', 'Dewi Kusuma', '19751228200001004', TRUE);
+('550e8400-e29b-41d4-a716-446655440201', 'guru_budi', 'budi@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'guru', 'Budi Santoso', '19800515200001001', TRUE),
+('550e8400-e29b-41d4-a716-446655440202', 'guru_siti', 'siti@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'guru', 'Siti Nurhaliza', '19851022200001002', TRUE),
+('550e8400-e29b-41d4-a716-446655440203', 'guru_ahmad', 'ahmad@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'guru', 'Ahmad Wijaya', '19800310200001003', TRUE),
+('550e8400-e29b-41d4-a716-446655440204', 'guru_dewi', 'dewi@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'guru', 'Dewi Kusuma', '19751228200001004', TRUE);
 
 INSERT INTO users (id, username, email, password, role, nama_lengkap, nisn, is_active) VALUES
-('550e8400-e29b-41d4-a716-446655440301', 'siswa_adi', 'adi@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Adi Pratama', '0123456001', TRUE),
-('550e8400-e29b-41d4-a716-446655440302', 'siswa_ani', 'ani@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Ani Wijaya', '0123456002', TRUE),
-('550e8400-e29b-41d4-a716-446655440303', 'siswa_budi', 'budi_s@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Budi Setiawan', '0123456003', TRUE),
-('550e8400-e29b-41d4-a716-446655440304', 'siswa_citra', 'citra@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Citra Dewi', '0123456004', TRUE),
-('550e8400-e29b-41d4-a716-446655440305', 'siswa_doni', 'doni@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Doni Hardianto', '0123456005', TRUE),
-('550e8400-e29b-41d4-a716-446655440306', 'siswa_eka', 'eka@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Eka Putri', '0123456006', TRUE);
+('550e8400-e29b-41d4-a716-446655440301', 'siswa_adi', 'adi@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Adi Pratama', '0123456001', TRUE),
+('550e8400-e29b-41d4-a716-446655440302', 'siswa_ani', 'ani@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Ani Wijaya', '0123456002', TRUE),
+('550e8400-e29b-41d4-a716-446655440303', 'siswa_budi', 'budi_s@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Budi Setiawan', '0123456003', TRUE),
+('550e8400-e29b-41d4-a716-446655440304', 'siswa_citra', 'citra@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Citra Dewi', '0123456004', TRUE),
+('550e8400-e29b-41d4-a716-446655440305', 'siswa_doni', 'doni@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Doni Hardianto', '0123456005', TRUE),
+('550e8400-e29b-41d4-a716-446655440306', 'siswa_eka', 'eka@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Eka Putri', '0123456006', TRUE);
 
 INSERT INTO users (id, username, email, password, role, nama_lengkap, nisn, is_active) VALUES
-('550e8400-e29b-41d4-a716-446655440307', 'siswa_farah', 'farah@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Farah Aziza', '0123456007', TRUE),
-('550e8400-e29b-41d4-a716-446655440308', 'siswa_gilang', 'gilang@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Gilang Ramadhan', '0123456008', TRUE),
-('550e8400-e29b-41d4-a716-446655440309', 'siswa_hana', 'hana@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Hana Kristina', '0123456009', TRUE),
-('550e8400-e29b-41d4-a716-446655440310', 'siswa_indra', 'indra@mindsio.com', '$2b$10$YmFkZGVkIGVkZWQgZWRlZA==', 'siswa', 'Indra Wijaya', '0123456010', TRUE);
+('550e8400-e29b-41d4-a716-446655440307', 'siswa_farah', 'farah@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Farah Aziza', '0123456007', TRUE),
+('550e8400-e29b-41d4-a716-446655440308', 'siswa_gilang', 'gilang@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Gilang Ramadhan', '0123456008', TRUE),
+('550e8400-e29b-41d4-a716-446655440309', 'siswa_hana', 'hana@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Hana Kristina', '0123456009', TRUE),
+('550e8400-e29b-41d4-a716-446655440310', 'siswa_indra', 'indra@mindsio.com', '$2b$10$ngU7wNIcvhVblRHrpja1C.I7fKcIaEug/G7AkFM.b1rYHa566nuA2', 'siswa', 'Indra Wijaya', '0123456010', TRUE);
 
 INSERT INTO kelas (id, nama_kelas, tingkat, wali_kelas_id, tahun_ajaran_id) VALUES
 ('550e8400-e29b-41d4-a716-446655440401', 'X-A', 10, '550e8400-e29b-41d4-a716-446655440201', '550e8400-e29b-41d4-a716-446655440003'),

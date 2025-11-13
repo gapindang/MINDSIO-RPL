@@ -1,8 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Lightbulb, Sparkles, Users } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage = () => {
+    const navigate = useNavigate();
+    const { isAuthenticated, user } = useAuth();
+
+    useEffect(() => {
+        // Redirect admin ke admin dashboard
+        if (isAuthenticated && user?.role === 'admin') {
+            navigate('/admin/dashboard');
+        } else if (isAuthenticated && user?.role === 'guru') {
+            navigate('/teacher/dashboard');
+        } else if (isAuthenticated && user?.role === 'siswa') {
+            navigate('/student/dashboard');
+        }
+    }, [isAuthenticated, user, navigate]);
+
     const features = [
         {
             icon: TrendingUp,

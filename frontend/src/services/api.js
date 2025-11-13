@@ -1,9 +1,7 @@
 import axios from "axios";
 
-// API Base URL
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-// Create axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to include token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -20,14 +17,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      const token = localStorage.getItem("token");
+      if (token) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }
@@ -38,16 +37,12 @@ api.interceptors.response.use(
 // ============================================================
 
 export const authAPI = {
-  // Register new user
   register: (userData) => api.post("/auth/register", userData),
 
-  // Login user
   login: (credentials) => api.post("/auth/login", credentials),
 
-  // Get current user profile
   getProfile: () => api.get("/auth/profile"),
 
-  // Update user profile
   updateProfile: (profileData) => api.put("/auth/profile", profileData),
 };
 
@@ -65,23 +60,67 @@ export const adminAPI = {
 
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
 
-  // Subject (Mata Pelajaran) Management
+  // Mata Pelajaran Management
   getAllMapel: () => api.get("/admin/mapel"),
 
   createMapel: (mapelData) => api.post("/admin/mapel", mapelData),
 
-  // Class (Kelas) Management
+  updateMapel: (mapelId, mapelData) =>
+    api.put(`/admin/mapel/${mapelId}`, mapelData),
+
+  deleteMapel: (mapelId) => api.delete(`/admin/mapel/${mapelId}`),
+
+  // Kelas Management
   getAllKelas: () => api.get("/admin/kelas"),
 
   createKelas: (kelasData) => api.post("/admin/kelas", kelasData),
 
-  // Academic Year (Tahun Ajaran) Management
+  updateKelas: (kelasId, kelasData) =>
+    api.put(`/admin/kelas/${kelasId}`, kelasData),
+
+  deleteKelas: (kelasId) => api.delete(`/admin/kelas/${kelasId}`),
+
+  // Tahun Ajaran Management
   getAllTahunAjaran: () => api.get("/admin/tahun-ajaran"),
 
   createTahunAjaran: (tahunData) => api.post("/admin/tahun-ajaran", tahunData),
 
-  // Admin Dashboard
+  updateTahunAjaran: (tahunId, tahunData) =>
+    api.put(`/admin/tahun-ajaran/${tahunId}`, tahunData),
+
+  deleteTahunAjaran: (tahunId) => api.delete(`/admin/tahun-ajaran/${tahunId}`),
+
+  // Dashboard
   getDashboard: () => api.get("/admin/dashboard"),
+
+  // Rapor & Export
+  getAllRapor: () => api.get("/admin/rapor"),
+
+  getRaporById: (raporId) => api.get(`/admin/rapor/${raporId}`),
+
+  exportRaporPDF: (raporId) =>
+    api.get(`/admin/export/rapor/${raporId}/pdf`, { responseType: "blob" }),
+
+  exportRaporExcel: (raporId) =>
+    api.get(`/admin/export/rapor/${raporId}/excel`, { responseType: "blob" }),
+
+  exportAllRaporPDF: () =>
+    api.get("/admin/export/rapor/all/pdf", { responseType: "blob" }),
+
+  exportAllRaporExcel: () =>
+    api.get("/admin/export/rapor/all/excel", { responseType: "blob" }),
+
+  exportAllRaporCSV: () =>
+    api.get("/admin/export/rapor/all/csv", { responseType: "blob" }),
+
+  exportRaporDetailExcel: () =>
+    api.get("/admin/export/rapor/detail/excel", { responseType: "blob" }),
+
+  exportRaporDetailCSV: () =>
+    api.get("/admin/export/rapor/detail/csv", { responseType: "blob" }),
+
+  exportRaporJSON: () =>
+    api.get("/admin/export/rapor/all/json", { responseType: "blob" }),
 };
 
 // ============================================================
@@ -89,19 +128,14 @@ export const adminAPI = {
 // ============================================================
 
 export const guruAPI = {
-  // Get classes taught by teacher
   getKelasTeaching: () => api.get("/guru/kelas"),
 
-  // Get students in specific class
   getSiswaInKelas: (kelasId) => api.get(`/guru/kelas/${kelasId}/siswa`),
 
-  // Input student grades
   inputNilai: (nilaiData) => api.post("/guru/nilai", nilaiData),
 
-  // Get class dashboard
   getDashboardKelas: (kelasId) => api.get(`/guru/kelas/${kelasId}/dashboard`),
 
-  // Create student report card
   createRapor: (raporData) => api.post("/guru/rapor", raporData),
 };
 
@@ -110,22 +144,17 @@ export const guruAPI = {
 // ============================================================
 
 export const siswaAPI = {
-  // Get student grades by academic year
   getNilaiRapor: (tahunAjaranId = null) => {
     const params = tahunAjaranId ? { tahun_ajaran_id: tahunAjaranId } : {};
     return api.get("/siswa/nilai", { params });
   },
 
-  // Get student report card summary
   getRaporSummary: () => api.get("/siswa/rapor"),
 
-  // Get student MBTI result
   getMBTIResult: () => api.get("/siswa/mbti"),
 
-  // Upload MBTI test result
   uploadMBTIResult: (mbtiData) => api.post("/siswa/mbti", mbtiData),
 
-  // Get student class info
   getKelasInfo: () => api.get("/siswa/kelas"),
 };
 
@@ -134,10 +163,8 @@ export const siswaAPI = {
 // ============================================================
 
 export const utilAPI = {
-  // Health check
   healthCheck: () => api.get("/health"),
 
-  // Format API error messages
   getErrorMessage: (error) => {
     if (error.response?.data?.message) {
       return error.response.data.message;
