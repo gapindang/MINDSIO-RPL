@@ -195,7 +195,7 @@ const exportRaporPDF = async (req, res) => {
     doc
       .fontSize(10)
       .font("Helvetica")
-      .text(`Generated on ${new Date().toLocaleDateString("id-ID")}`, {
+      .text(`Dibuat pada ${new Date().toLocaleDateString("id-ID")}`, {
         align: "center",
       });
     doc.moveDown();
@@ -462,6 +462,319 @@ const exportRaporDetailExcel = async (req, res) => {
   }
 };
 
+/**
+ * Export satu rapor (by id) ke CSV
+ */
+const verifyRaporAccessForUser = async (req, raporId, connection) => {
+  if (!req.user) return false;
+  if (req.user.role === "admin") return true;
+  if (req.user.role === "guru") {
+    const [rows] = await connection.query(
+      `SELECT k.wali_kelas_id FROM rapor r JOIN kelas k ON r.kelas_id = k.id WHERE r.id = ? LIMIT 1`,
+      [raporId]
+    );
+    if (rows.length === 0) return false;
+    return rows[0].wali_kelas_id === req.user.id;
+  }
+  return false;
+};
+
+const exportRaporByIdCSV = async (req, res) => {
+  try {
+    const { raporId } = req.params;
+    const connection = await pool.getConnection();
+
+    // Access control: admin or wali kelas of the rapor's class
+    const allowed = await verifyRaporAccessForUser(req, raporId, connection);
+    if (!allowed) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    const [rows] = await connection.query(
+      `
+      SELECT 
+        r.id,
+        u.nama_lengkap as nama_siswa,
+        u.nisn,
+        k.nama_kelas,
+        ta.tahun_ajaran,
+        r.rata_rata_nilai,
+        r.komentar_wali_kelas,
+        r.apresiasi_wali_kelas,
+        r.tanggal_dibuat
+      FROM rapor r
+      JOIN users u ON r.siswa_id = u.id
+      JOIN kelas k ON r.kelas_id = k.id
+      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+      WHERE r.id = ?
+      LIMIT 1
+    `,
+      [raporId]
+    );
+
+    connection.release();
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Rapor tidak ditemukan" });
+    }
+
+    const rapor = rows[0];
+
+    let csvContent =
+      "Nama Siswa,NISN,Kelas,Tahun Ajaran,Rata-rata Nilai,Komentar,Apresiasi,Tanggal\n";
+    csvContent += `"${rapor.nama_siswa}","${rapor.nisn}","${
+      rapor.nama_kelas
+    }","${rapor.tahun_ajaran}",${rapor.rata_rata_nilai},"${
+      rapor.komentar_wali_kelas || ""
+    }","${rapor.apresiasi_wali_kelas || ""}","${rapor.tanggal_dibuat}"\n`;
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="rapor_${rapor.id}.csv"`
+    );
+    res.send(csvContent);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Export satu rapor (by id) ke JSON
+ */
+const exportRaporByIdJSON = async (req, res) => {
+  try {
+    const { raporId } = req.params;
+    const connection = await pool.getConnection();
+
+    const allowed = await verifyRaporAccessForUser(req, raporId, connection);
+    if (!allowed) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    const [rows] = await connection.query(
+      `
+      SELECT 
+        r.id,
+        u.nama_lengkap as nama_siswa,
+        u.nisn,
+        k.nama_kelas,
+        ta.tahun_ajaran,
+        r.rata_rata_nilai,
+        r.komentar_wali_kelas,
+        r.apresiasi_wali_kelas,
+        r.tanggal_dibuat
+      FROM rapor r
+      JOIN users u ON r.siswa_id = u.id
+      JOIN kelas k ON r.kelas_id = k.id
+      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+      WHERE r.id = ?
+      LIMIT 1
+    `,
+      [raporId]
+    );
+
+    connection.release();
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Rapor tidak ditemukan" });
+    }
+
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="rapor_${rows[0].id}.json"`
+    );
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Export satu rapor (by id) ke PDF
+ */
+const exportRaporByIdPDF = async (req, res) => {
+  try {
+    const { raporId } = req.params;
+    const connection = await pool.getConnection();
+
+    const allowed = await verifyRaporAccessForUser(req, raporId, connection);
+    if (!allowed) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    const [rows] = await connection.query(
+      `
+      SELECT 
+        r.id,
+        u.nama_lengkap as nama_siswa,
+        u.nisn,
+        k.nama_kelas,
+        ta.tahun_ajaran,
+        r.rata_rata_nilai,
+        r.komentar_wali_kelas,
+        r.apresiasi_wali_kelas,
+        r.tanggal_dibuat
+      FROM rapor r
+      JOIN users u ON r.siswa_id = u.id
+      JOIN kelas k ON r.kelas_id = k.id
+      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+      WHERE r.id = ?
+      LIMIT 1
+    `,
+      [raporId]
+    );
+
+    connection.release();
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Rapor tidak ditemukan" });
+    }
+
+    const rapor = rows[0];
+
+    const doc = new PDFDocument({ size: "A4", margin: 40 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="rapor_${rapor.id}.pdf"`
+    );
+    doc.pipe(res);
+
+    doc
+      .fontSize(18)
+      .font("Helvetica-Bold")
+      .text("Rapor Siswa", { align: "center" });
+    doc.moveDown();
+
+    doc.fontSize(12).font("Helvetica");
+    doc.text(`Nama: ${rapor.nama_siswa}`);
+    doc.text(`NISN: ${rapor.nisn}`);
+    doc.text(`Kelas: ${rapor.nama_kelas}`);
+    doc.text(`Tahun Ajaran: ${rapor.tahun_ajaran}`);
+    doc.text(
+      `Rata-rata Nilai: ${parseFloat(rapor.rata_rata_nilai).toFixed(2)}`
+    );
+    doc.moveDown();
+    if (rapor.komentar_wali_kelas) {
+      doc.text("Komentar Wali Kelas:");
+      doc.font("Helvetica-Oblique").text(rapor.komentar_wali_kelas);
+      doc.font("Helvetica");
+      doc.moveDown();
+    }
+    if (rapor.apresiasi_wali_kelas) {
+      doc.text("Apresiasi:");
+      doc.font("Helvetica-Oblique").text(rapor.apresiasi_wali_kelas);
+      doc.font("Helvetica");
+    }
+
+    doc.end();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Export satu rapor (by id) ke Excel
+ */
+const exportRaporByIdExcel = async (req, res) => {
+  try {
+    const { raporId } = req.params;
+    const connection = await pool.getConnection();
+
+    const allowed = await verifyRaporAccessForUser(req, raporId, connection);
+    if (!allowed) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    const [rows] = await connection.query(
+      `
+      SELECT 
+        r.id,
+        u.nama_lengkap as nama_siswa,
+        u.nisn,
+        k.nama_kelas,
+        ta.tahun_ajaran,
+        r.rata_rata_nilai,
+        r.komentar_wali_kelas,
+        r.apresiasi_wali_kelas,
+        r.tanggal_dibuat
+      FROM rapor r
+      JOIN users u ON r.siswa_id = u.id
+      JOIN kelas k ON r.kelas_id = k.id
+      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+      WHERE r.id = ?
+      LIMIT 1
+    `,
+      [raporId]
+    );
+
+    connection.release();
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Rapor tidak ditemukan" });
+    }
+
+    const rapor = rows[0];
+    const headers = [
+      "Nama Siswa",
+      "NISN",
+      "Kelas",
+      "Tahun Ajaran",
+      "Rata-rata Nilai",
+      "Komentar",
+      "Apresiasi",
+      "Tanggal",
+    ];
+
+    const data = [
+      [
+        rapor.nama_siswa,
+        rapor.nisn,
+        rapor.nama_kelas,
+        rapor.tahun_ajaran,
+        parseFloat(rapor.rata_rata_nilai).toFixed(2),
+        rapor.komentar_wali_kelas || "",
+        rapor.apresiasi_wali_kelas || "",
+        rapor.tanggal_dibuat,
+      ],
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    worksheet["!cols"] = [
+      { wch: 20 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 16 },
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 18 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Rapor");
+    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="rapor_${rapor.id}.xlsx"`
+    );
+    res.send(buffer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   exportRaporCSV,
   exportRaporJSON,
@@ -469,4 +782,8 @@ module.exports = {
   exportRaporPDF,
   exportRaporExcel,
   exportRaporDetailExcel,
+  exportRaporByIdCSV,
+  exportRaporByIdJSON,
+  exportRaporByIdPDF,
+  exportRaporByIdExcel,
 };

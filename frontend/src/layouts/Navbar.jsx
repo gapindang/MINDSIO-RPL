@@ -36,7 +36,7 @@ const Navbar = () => {
                                 className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
                                     }`}
                             >
-                                Home
+                                Beranda
                             </Link>
 
                             {isAuthenticated && user?.role === 'guru' && (
@@ -45,7 +45,7 @@ const Navbar = () => {
                                     className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/teacher/dashboard') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
                                         }`}
                                 >
-                                    Dashboard
+                                    Dasbor
                                 </Link>
                             )}
 
@@ -56,21 +56,28 @@ const Navbar = () => {
                                         className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/dashboard') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
                                             }`}
                                     >
-                                        Dashboard
+                                        Dasbor
+                                    </Link>
+                                    <Link
+                                        to="/student/grades"
+                                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/grades') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        Nilai Saya
                                     </Link>
                                     <Link
                                         to="/student/mbti-test"
                                         className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/mbti-test') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
                                             }`}
                                     >
-                                        MBTI Test
+                                        Tes MBTI
                                     </Link>
                                     <Link
                                         to="/student/my-results"
                                         className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/my-results') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
                                             }`}
                                     >
-                                        My Results
+                                        Hasil Saya
                                     </Link>
                                 </>
                             )}
@@ -95,7 +102,7 @@ const Navbar = () => {
                                     className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition"
                                 >
                                     <LogOut className="h-4 w-4" />
-                                    <span>Logout</span>
+                                    <span>Keluar</span>
                                 </button>
                             </>
                         ) : (
@@ -104,13 +111,13 @@ const Navbar = () => {
                                     to="/login"
                                     className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50"
                                 >
-                                    Login
+                                    Masuk
                                 </Link>
                                 <Link
                                     to="/register"
                                     className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
                                 >
-                                    Register
+                                    Daftar
                                 </Link>
                             </div>
                         )}
@@ -137,7 +144,7 @@ const Navbar = () => {
                             className={`block px-3 py-2 rounded-md text-sm font-medium ${isActive('/') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
                                 }`}
                         >
-                            Home
+                            Beranda
                         </Link>
 
                         {isAuthenticated && user?.role === 'guru' && (
@@ -160,18 +167,25 @@ const Navbar = () => {
                                     Dashboard
                                 </Link>
                                 <Link
+                                    to="/student/grades"
+                                    className={`block px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/grades') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    Nilai Saya
+                                </Link>
+                                <Link
                                     to="/student/mbti-test"
                                     className={`block px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/mbti-test') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
                                         }`}
                                 >
-                                    MBTI Test
+                                    Tes MBTI
                                 </Link>
                                 <Link
                                     to="/student/my-results"
                                     className={`block px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/my-results') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'
                                         }`}
                                 >
-                                    My Results
+                                    Hasil Saya
                                 </Link>
                             </>
                         )}
@@ -187,7 +201,7 @@ const Navbar = () => {
                                         onClick={handleLogout}
                                         className="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md"
                                     >
-                                        Logout
+                                        Keluar
                                     </button>
                                 </>
                             ) : (
@@ -196,13 +210,13 @@ const Navbar = () => {
                                         to="/login"
                                         className="block px-3 py-2 text-sm font-medium text-center text-blue-600 border border-blue-600 rounded-md"
                                     >
-                                        Login
+                                        Masuk
                                     </Link>
                                     <Link
                                         to="/register"
                                         className="block px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md text-center"
                                     >
-                                        Register
+                                        Daftar
                                     </Link>
                                 </div>
                             )}

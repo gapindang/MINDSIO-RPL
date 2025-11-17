@@ -1,41 +1,104 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Users, FileCheck, TrendingUp, FileText, Download } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { guruAPI } from '../services/api';
+import { MdDownload } from 'react-icons/md';
 
 const TeacherDashboard = () => {
-    const [selectedStudent, setSelectedStudent] = useState('');
-    const [selectedSubject, setSelectedSubject] = useState('');
-    const [grade, setGrade] = useState('');
+    const [kelasList, setKelasList] = useState([]);
+    const [kelasId, setKelasId] = useState('');
+    const [tahunAjaranId, setTahunAjaranId] = useState('');
+    const [siswaList, setSiswaList] = useState([]);
+    const [mapelList, setMapelList] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [nilaiForm, setNilaiForm] = useState({ siswaId: '', mapelId: '', nilaiUts: '', nilaiUas: '', komentar: '', apresiasi: '' });
+    const [dashboard, setDashboard] = useState(null);
 
-    const stats = [
-        { title: 'Total Students', value: '124', subtitle: 'Across all classes', icon: Users, color: 'blue' },
-        { title: 'MBTI Tests Completed', value: '98', subtitle: '98% completion rate', icon: FileCheck, color: 'purple' },
-        { title: 'Class Average GPA', value: '3.6', subtitle: '56 ections unfinished', icon: TrendingUp, color: 'green' },
-        { title: 'Reports Generated', value: '45', subtitle: 'This month', icon: FileText, color: 'yellow' },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            try {
+                setLoading(true);
+                const { data } = await guruAPI.getKelasTeaching();
+                setKelasList(data || []);
+                if (data && data.length) {
+                    setKelasId(data[0].id);
+                    setTahunAjaranId(data[0].tahun_ajaran_id);
+                }
+            } catch (e) {
+                setError('Gagal memuat daftar kelas');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
 
-    const classPerformance = [
-        { name: 'Math', value: 85 },
-        { name: 'Science', value: 92 },
-        { name: 'English', value: 88 },
-        { name: 'History', value: 78 },
-    ];
+    useEffect(() => {
+        const loadKelasData = async () => {
+            if (!kelasId) return;
+            try {
+                setLoading(true);
+                const [siswaRes, mapelRes, dashRes] = await Promise.all([
+                    guruAPI.getSiswaInKelas(kelasId),
+                    guruAPI.getMapelForClass(kelasId),
+                    guruAPI.getDashboardKelas(kelasId),
+                ]);
+                setSiswaList(siswaRes.data || []);
+                setMapelList(mapelRes.data || []);
+                setDashboard(dashRes.data || null);
+                setError(null);
+            } catch (e) {
+                setError('Gagal memuat data kelas');
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadKelasData();
+    }, [kelasId]);
 
-    const students = [
-        { name: 'Emma Johnson', mbti: 'INFP', gpa: 3.8, performance: 'Excellent' },
-        { name: 'Liam Smith', mbti: 'ESTJ', gpa: 3.6, performance: 'Good' },
-        { name: 'Olivia Brown', mbti: 'ENFP', gpa: 3.9, performance: 'Excellent' },
-        { name: 'Noah Davis', mbti: 'INTJ', gpa: 3.5, performance: 'Good' },
-        { name: 'Ava Wilson', mbti: 'ISFJ', gpa: 3.7, performance: 'Good' },
-    ];
+    const stats = useMemo(() => ([
+        { title: 'Total Siswa', value: dashboard?.statistik?.jumlah_siswa || 0, subtitle: 'Di kelas terpilih', icon: Users, color: 'blue' },
+        { title: 'Tes MBTI Selesai', value: dashboard?.statistik?.mbti_selesai || 0, subtitle: 'Selesai MBTI', icon: FileCheck, color: 'purple' },
+        { title: 'Rata-rata Kelas', value: (dashboard?.statistik?.rata_rata_kelas || 0).toFixed(1), subtitle: 'Rata-rata nilai akhir', icon: TrendingUp, color: 'green' },
+        { title: 'Rapor Tersedia', value: siswaList.length, subtitle: 'Siswa dalam kelas', icon: FileText, color: 'yellow' },
+    ]), [dashboard, siswaList.length]);
 
-    const handleUploadGrade = () => {
-        if (selectedStudent && selectedSubject && grade) {
-            alert(`Grade uploaded: ${grade} for ${selectedSubject}`);
-            setSelectedStudent('');
-            setSelectedSubject('');
-            setGrade('');
+    const classPerformance = useMemo(() => (dashboard?.performa_mapel || []).map(p => ({ name: p.nama_mapel, value: Math.round(p.rata_rata || 0) })), [dashboard]);
+
+    const handleUploadGrade = async () => {
+        const { siswaId, mapelId, nilaiUts, nilaiUas, komentar, apresiasi } = nilaiForm;
+        if (!siswaId || !mapelId || !kelasId || !tahunAjaranId) return alert('Lengkapi data nilai terlebih dahulu');
+        try {
+            await guruAPI.inputNilai({ siswaId, mapelId, kelasId, tahunAjaranId, nilaiUts: Number(nilaiUts), nilaiUas: Number(nilaiUas), komentar, apresiasi });
+            alert('Nilai tersimpan');
+            setNilaiForm({ siswaId: '', mapelId: '', nilaiUts: '', nilaiUas: '', komentar: '', apresiasi: '' });
+        } catch (e) {
+            alert(e?.response?.data?.message || 'Gagal menyimpan nilai');
+        }
+    };
+
+    const handleCetakRapor = async (siswa) => {
+        try {
+            // Pastikan rapor dibuat/diupdate
+            await guruAPI.createRapor({ siswaId: siswa.id, kelasId, tahunAjaranId, komentar: '', apresiasi: '' });
+            // Ambil raporId
+            const { data } = await guruAPI.getRaporIdBySiswa(siswa.id, tahunAjaranId);
+            const raporId = data.raporId;
+            // Download PDF
+            const pdf = await adminAPI.exportRaporPDF(raporId);
+            const blob = pdf.data;
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rapor_${(siswa.nama_lengkap || 'siswa').replace(/[^a-z0-9-_]+/gi, '_').toLowerCase()}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            alert(e?.response?.data?.message || 'Gagal mencetak rapor');
         }
     };
 
@@ -43,8 +106,8 @@ const TeacherDashboard = () => {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Teacher Dashboard</h1>
-                    <p className="text-gray-600 mt-1">Manage students and monitor performance</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Dasbor Guru</h1>
+                    <p className="text-gray-600 mt-1">Kelola kelas, input nilai, dan cetak rapor</p>
                 </div>
 
                 {/* Stats Grid */}
@@ -55,69 +118,76 @@ const TeacherDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    {/* Select Kelas */}
+                    <div className="lg:col-span-1 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Pilih Kelas</h2>
+                        <select value={kelasId} onChange={(e) => setKelasId(e.target.value)} className="w-full px-3 py-2 border rounded-md">
+                            {kelasList.map(k => (
+                                <option key={k.id} value={k.id}>{k.nama_kelas} • {k.tahun_ajaran}</option>
+                            ))}
+                        </select>
+                    </div>
                     {/* Upload Student Grades */}
                     <div className="lg:col-span-1 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Student Grades</h2>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Unggah Nilai Siswa</h2>
 
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Select Student
+                                    Pilih Siswa
                                 </label>
-                                <select
-                                    value={selectedStudent}
-                                    onChange={(e) => setSelectedStudent(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Choose a student</option>
-                                    {students.map((student, index) => (
-                                        <option key={index} value={student.name}>{student.name}</option>
+                                <select value={nilaiForm.siswaId} onChange={(e) => setNilaiForm({ ...nilaiForm, siswaId: e.target.value })} className="w-full px-3 py-2 border rounded-md">
+                                    <option value="">Pilih siswa</option>
+                                    {siswaList.map(s => (
+                                        <option key={s.id} value={s.id}>{s.nama_lengkap} ({s.nisn})</option>
                                     ))}
                                 </select>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Subject
+                                    Mata Pelajaran
                                 </label>
-                                <select
-                                    value={selectedSubject}
-                                    onChange={(e) => setSelectedSubject(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Choose subject</option>
-                                    <option value="Math">Math</option>
-                                    <option value="Science">Science</option>
-                                    <option value="English">English</option>
-                                    <option value="History">History</option>
+                                <select value={nilaiForm.mapelId} onChange={(e) => setNilaiForm({ ...nilaiForm, mapelId: e.target.value })} className="w-full px-3 py-2 border rounded-md">
+                                    <option value="">Pilih mapel</option>
+                                    {mapelList.map(m => (
+                                        <option key={m.id} value={m.id}>{m.nama_mapel}</option>
+                                    ))}
                                 </select>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Grade (%)
+                                    Nilai (%)
                                 </label>
-                                <input
-                                    type="number"
-                                    value={grade}
-                                    onChange={(e) => setGrade(e.target.value)}
-                                    placeholder="Enter grade"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input type="number" value={nilaiForm.nilaiUts} onChange={(e) => setNilaiForm({ ...nilaiForm, nilaiUts: e.target.value })} placeholder="UTS" className="w-full px-3 py-2 border rounded-md" />
+                                    <input type="number" value={nilaiForm.nilaiUas} onChange={(e) => setNilaiForm({ ...nilaiForm, nilaiUas: e.target.value })} placeholder="UAS" className="w-full px-3 py-2 border rounded-md" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Komentar (opsional)</label>
+                                <textarea value={nilaiForm.komentar} onChange={(e) => setNilaiForm({ ...nilaiForm, komentar: e.target.value })} className="w-full px-3 py-2 border rounded-md" rows={2} />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Apresiasi (opsional)</label>
+                                <textarea value={nilaiForm.apresiasi} onChange={(e) => setNilaiForm({ ...nilaiForm, apresiasi: e.target.value })} className="w-full px-3 py-2 border rounded-md" rows={2} />
                             </div>
 
                             <button
                                 onClick={handleUploadGrade}
                                 className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition"
                             >
-                                Upload Grade
+                                Simpan Nilai
                             </button>
                         </div>
                     </div>
 
                     {/* Class Performance Chart */}
                     <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Class Performance Overview</h2>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Performa Kelas</h2>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={classPerformance}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -133,55 +203,28 @@ const TeacherDashboard = () => {
                 {/* Student Overview Table */}
                 <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-semibold text-gray-900">Student Overview</h2>
-                        <button className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50">
-                            <Download className="h-4 w-4" />
-                            <span>Export Report</span>
-                        </button>
+                        <h2 className="text-lg font-semibold text-gray-900">Daftar Siswa</h2>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Student Name
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        MBTI Type
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        GPA
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Performance
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NISN</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rata-rata</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {students.map((student, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {student.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            {student.mbti}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            {student.gpa}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${student.performance === 'Excellent' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                                                }`}>
-                                                {student.performance}
-                                            </span>
-                                        </td>
+                                {siswaList.map((s) => (
+                                    <tr key={s.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{s.nama_lengkap}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{s.nisn}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{Math.round(s.rata_rata_nilai || 0)}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button className="text-blue-600 hover:text-blue-800 font-medium">
-                                                View Details
+                                            <button onClick={() => handleCetakRapor(s)} className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50">
+                                                <MdDownload size={16} /> Cetak Rapor (PDF)
                                             </button>
                                         </td>
                                     </tr>

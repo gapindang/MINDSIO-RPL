@@ -21,26 +21,26 @@ const HomePage = () => {
     const features = [
         {
             icon: TrendingUp,
-            title: 'Track Progress',
-            description: 'Monitor your academic performance with detailed charts and insights.',
+            title: 'Pantau Perkembangan',
+            description: 'Monitor perkembangan akademik Anda dengan grafik dan insight yang jelas.',
             color: 'blue',
         },
         {
             icon: Lightbulb,
-            title: 'MBTI Insights',
-            description: 'Discover your personality type and how it affects your learning style.',
+            title: 'Wawasan MBTI',
+            description: 'Temukan tipe kepribadian Anda dan pengaruhnya pada gaya belajar.',
             color: 'yellow',
         },
         {
             icon: Sparkles,
-            title: 'Personalized Tips',
-            description: 'Get customized learning recommendations based on your personality.',
+            title: 'Tips Personalisasi',
+            description: 'Dapatkan rekomendasi belajar yang dipersonalisasi berdasarkan kepribadian Anda.',
             color: 'green',
         },
         {
             icon: Users,
-            title: 'Teacher Support',
-            description: 'Educators can track and support students more effectively.',
+            title: 'Dukungan Guru',
+            description: 'Guru dapat memantau dan mendukung siswa dengan lebih efektif.',
             color: 'purple',
         },
     ];
@@ -63,23 +63,23 @@ const HomePage = () => {
                         </div>
                     </div>
                     <h1 className="text-5xl font-bold text-gray-900 mb-6">
-                        Discover How You Learn Best
+                        Temukan Cara Belajar Terbaik Anda
                     </h1>
                     <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                        Mindsio combines academic tracking with personality insights to help students unlock their full potential through personalized learning recommendations.
+                        Mindsio menggabungkan pelacakan akademik dengan wawasan kepribadian untuk membantu siswa mencapai potensi maksimal melalui rekomendasi belajar yang dipersonalisasi.
                     </p>
                     <div className="flex gap-4 justify-center">
                         <Link
                             to="/student/mbti-test"
                             className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition"
                         >
-                            Take MBTI Test
+                            Ikuti Tes MBTI
                         </Link>
                         <Link
                             to="/student/dashboard"
                             className="px-6 py-3 bg-white text-blue-600 font-medium rounded-md border-2 border-blue-600 hover:bg-blue-50 transition"
                         >
-                            View Report
+                            Lihat Rapor
                         </Link>
                     </div>
                 </div>
@@ -89,7 +89,7 @@ const HomePage = () => {
             <section className="py-16 px-4 bg-white">
                 <div className="max-w-6xl mx-auto">
                     <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">
-                        Why Choose Mindsio?
+                        Mengapa Memilih Mindsio?
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
                         {features.map((feature, index) => {
@@ -115,22 +115,22 @@ const HomePage = () => {
             {/* How It Works */}
             <section className="py-16 px-4 bg-blue-600 text-white">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-3xl font-bold mb-8">How It Works</h2>
+                    <h2 className="text-3xl font-bold mb-8">Cara Kerja</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
                         <div>
                             <div className="text-4xl font-bold mb-4">1</div>
-                            <h3 className="text-xl font-semibold mb-2">Take the Test</h3>
-                            <p className="text-blue-100">Complete the MBTI personality assessment</p>
+                            <h3 className="text-xl font-semibold mb-2">Ikuti Tes</h3>
+                            <p className="text-blue-100">Selesaikan asesmen kepribadian MBTI</p>
                         </div>
                         <div>
                             <div className="text-4xl font-bold mb-4">2</div>
-                            <h3 className="text-xl font-semibold mb-2">Get Insights</h3>
-                            <p className="text-blue-100">Discover your learning style and strengths</p>
+                            <h3 className="text-xl font-semibold mb-2">Dapatkan Wawasan</h3>
+                            <p className="text-blue-100">Ketahui gaya belajar dan kekuatan Anda</p>
                         </div>
                         <div>
                             <div className="text-4xl font-bold mb-4">3</div>
-                            <h3 className="text-xl font-semibold mb-2">Track Progress</h3>
-                            <p className="text-blue-100">Monitor your academic performance over time</p>
+                            <h3 className="text-xl font-semibold mb-2">Pantau Perkembangan</h3>
+                            <p className="text-blue-100">Pantau performa akademik Anda dari waktu ke waktu</p>
                         </div>
                     </div>
                 </div>

@@ -82,8 +82,8 @@ const login = async (req, res) => {
     const connection = await pool.getConnection();
 
     const [users] = await connection.query(
-      "SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = TRUE",
-      [username, username]
+      "SELECT * FROM users WHERE (username = ? OR email = ? OR nisn = ?) AND is_active = TRUE",
+      [username, username, username]
     );
 
     if (users.length === 0) {

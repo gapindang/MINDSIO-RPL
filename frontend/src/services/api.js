@@ -98,6 +98,12 @@ export const adminAPI = {
 
   getRaporById: (raporId) => api.get(`/admin/rapor/${raporId}`),
 
+  exportRaporCSV: (raporId) =>
+    api.get(`/admin/export/rapor/${raporId}/csv`, { responseType: "blob" }),
+
+  exportRaporJSON: (raporId) =>
+    api.get(`/admin/export/rapor/${raporId}/json`, { responseType: "blob" }),
+
   exportRaporPDF: (raporId) =>
     api.get(`/admin/export/rapor/${raporId}/pdf`, { responseType: "blob" }),
 
@@ -119,8 +125,11 @@ export const adminAPI = {
   exportRaporDetailCSV: () =>
     api.get("/admin/export/rapor/detail/csv", { responseType: "blob" }),
 
-  exportRaporJSON: () =>
+  exportAllRaporJSON: () =>
     api.get("/admin/export/rapor/all/json", { responseType: "blob" }),
+
+  // MBTI Admin Controls
+  resetMBTI: (siswaId) => api.delete(`/admin/mbti/${siswaId}`),
 };
 
 // ============================================================
@@ -137,6 +146,11 @@ export const guruAPI = {
   getDashboardKelas: (kelasId) => api.get(`/guru/kelas/${kelasId}/dashboard`),
 
   createRapor: (raporData) => api.post("/guru/rapor", raporData),
+
+  getMapelForClass: (kelasId) => api.get(`/guru/kelas/${kelasId}/mapel`),
+
+  getRaporIdBySiswa: (siswaId, tahunAjaranId) =>
+    api.get(`/guru/rapor/by-siswa`, { params: { siswaId, tahunAjaranId } }),
 };
 
 // ============================================================
@@ -149,13 +163,13 @@ export const siswaAPI = {
     return api.get("/siswa/nilai", { params });
   },
 
-  getRaporSummary: () => api.get("/siswa/rapor"),
+  getRaporSummary: () => api.get("/siswa/rapor-summary"),
 
   getMBTIResult: () => api.get("/siswa/mbti"),
 
   uploadMBTIResult: (mbtiData) => api.post("/siswa/mbti", mbtiData),
 
-  getKelasInfo: () => api.get("/siswa/kelas"),
+  getKelasInfo: () => api.get("/siswa/kelas-info"),
 };
 
 // ============================================================

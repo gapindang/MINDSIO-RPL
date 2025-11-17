@@ -74,7 +74,7 @@ const AdminLaporan = () => {
                     filename = `rapor_all_${dateStr}.csv`;
                     break;
                 case 'json':
-                    response = await adminAPI.exportRaporJSON();
+                    response = await adminAPI.exportAllRaporJSON();
                     filename = `rapor_all_${dateStr}.json`;
                     break;
                 case 'pdf':
@@ -100,6 +100,41 @@ const AdminLaporan = () => {
             downloadFile(response.data, filename);
         } catch (err) {
             setError(`Gagal mengekspor ke ${format.toUpperCase()}`);
+            console.error(err);
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const handleExportSingle = async (rapor, format) => {
+        try {
+            setExporting(true);
+            let response;
+            const dateStr = new Date().toISOString().slice(0, 10);
+            const safeName = (rapor.siswa_nama || 'siswa').replace(/[^a-z0-9-_]+/gi, '_').toLowerCase();
+
+            switch (format) {
+                case 'csv':
+                    response = await adminAPI.exportRaporCSV(rapor.id);
+                    downloadFile(response.data, `rapor_${safeName}_${dateStr}.csv`);
+                    break;
+                case 'json':
+                    response = await adminAPI.exportRaporJSON(rapor.id);
+                    downloadFile(response.data, `rapor_${safeName}_${dateStr}.json`);
+                    break;
+                case 'pdf':
+                    response = await adminAPI.exportRaporPDF(rapor.id);
+                    downloadFile(response.data, `rapor_${safeName}_${dateStr}.pdf`);
+                    break;
+                case 'excel':
+                    response = await adminAPI.exportRaporExcel(rapor.id);
+                    downloadFile(response.data, `rapor_${safeName}_${dateStr}.xlsx`);
+                    break;
+                default:
+                    throw new Error('Format tidak dikenali');
+            }
+        } catch (err) {
+            setError(`Gagal mengekspor rapor ke ${format.toUpperCase()}`);
             console.error(err);
         } finally {
             setExporting(false);
@@ -262,9 +297,9 @@ const AdminLaporan = () => {
                                     </div>
                                 )}
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                     <button
-                                        onClick={() => handleExportAll('csv')}
+                                        onClick={() => handleExportSingle(rapor, 'csv')}
                                         disabled={exporting}
                                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 disabled:bg-gray-100 transition-colors text-sm font-medium"
                                     >
@@ -272,12 +307,28 @@ const AdminLaporan = () => {
                                         CSV
                                     </button>
                                     <button
-                                        onClick={() => handleExportAll('json')}
+                                        onClick={() => handleExportSingle(rapor, 'json')}
                                         disabled={exporting}
                                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 disabled:bg-gray-100 transition-colors text-sm font-medium"
                                     >
                                         <MdDownload size={18} />
                                         JSON
+                                    </button>
+                                    <button
+                                        onClick={() => handleExportSingle(rapor, 'excel')}
+                                        disabled={exporting}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 disabled:bg-gray-100 transition-colors text-sm font-medium"
+                                    >
+                                        <MdDownload size={18} />
+                                        Excel
+                                    </button>
+                                    <button
+                                        onClick={() => handleExportSingle(rapor, 'pdf')}
+                                        disabled={exporting}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:bg-gray-100 transition-colors text-sm font-medium"
+                                    >
+                                        <MdDownload size={18} />
+                                        PDF
                                     </button>
                                 </div>
                             </div>

@@ -5,42 +5,42 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 
 const StudentDashboard = () => {
     const stats = [
-        { title: 'Current GPA', value: '3.70', subtitle: '+0.1 from last month', icon: TrendingUp, color: 'blue' },
-        { title: 'Courses', value: '5', subtitle: 'Active this semester', icon: BookOpen, color: 'purple' },
-        { title: 'Average Score', value: '87.6%', subtitle: 'Across all subjects', icon: Award, color: 'yellow' },
-        { title: 'MBTI Type', value: 'INFP', subtitle: 'The Mediator', icon: Sparkles, color: 'green' },
+        { title: 'IPK Saat Ini', value: '3.70', subtitle: '+0,1 dari bulan lalu', icon: TrendingUp, color: 'blue' },
+        { title: 'Mata Pelajaran', value: '5', subtitle: 'Aktif semester ini', icon: BookOpen, color: 'purple' },
+        { title: 'Nilai Rata-rata', value: '87,6%', subtitle: 'Di semua mata pelajaran', icon: Award, color: 'yellow' },
+        { title: 'Tipe MBTI', value: 'INFP', subtitle: 'Si Mediator', icon: Sparkles, color: 'green' },
     ];
 
     const gpaData = [
         { month: 'Sep', gpa: 3.2 },
-        { month: 'Oct', gpa: 3.4 },
+        { month: 'Okt', gpa: 3.4 },
         { month: 'Nov', gpa: 3.3 },
-        { month: 'Dec', gpa: 3.5 },
+        { month: 'Des', gpa: 3.5 },
         { month: 'Jan', gpa: 3.7 },
     ];
 
     const subjectPerformance = [
-        { name: 'Math', score: 85 },
-        { name: 'Science', score: 92 },
-        { name: 'English', score: 88 },
-        { name: 'History', score: 78 },
-        { name: 'Art', score: 95 },
+        { name: 'Matematika', score: 85 },
+        { name: 'Sains', score: 92 },
+        { name: 'Bahasa Inggris', score: 88 },
+        { name: 'Sejarah', score: 78 },
+        { name: 'Seni', score: 95 },
     ];
 
     const detailedProgress = [
-        { subject: 'Math', progress: 88, color: 'blue' },
-        { subject: 'Science', progress: 92, color: 'green' },
-        { subject: 'English', progress: 88, color: 'blue' },
-        { subject: 'History', progress: 73, color: 'yellow' },
-        { subject: 'Art', progress: 92, color: 'green' },
+        { subject: 'Matematika', progress: 88, color: 'blue' },
+        { subject: 'Sains', progress: 92, color: 'green' },
+        { subject: 'Bahasa Inggris', progress: 88, color: 'blue' },
+        { subject: 'Sejarah', progress: 73, color: 'yellow' },
+        { subject: 'Seni', progress: 92, color: 'green' },
     ];
 
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Welcome back, Student!</h1>
-                    <p className="text-gray-600 mt-1">Here's your academic progress overview</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Selamat datang kembali, Siswa!</h1>
+                    <p className="text-gray-600 mt-1">Berikut ringkasan perkembangan akademik Anda</p>
                 </div>
 
                 {/* Stats Grid */}
@@ -53,7 +53,7 @@ const StudentDashboard = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     {/* GPA Trend Chart */}
                     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">GPA Trend</h2>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Tren IPK</h2>
                         <ResponsiveContainer width="100%" height={250}>
                             <LineChart data={gpaData}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -67,7 +67,7 @@ const StudentDashboard = () => {
 
                     {/* Subject Performance Chart */}
                     <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Subject Performance</h2>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Performa Mata Pelajaran</h2>
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={subjectPerformance}>
                                 <CartesianGrid strokeDasharray="3 3" />
@@ -82,7 +82,7 @@ const StudentDashboard = () => {
 
                 {/* Detailed Subject Progress */}
                 <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-6">Detailed Subject Progress</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-6">Perkembangan Detail per Mata Pelajaran</h2>
                     <div className="space-y-4">
                         {detailedProgress.map((item, index) => {
                             const colorClasses = {
@@ -96,8 +96,8 @@ const StudentDashboard = () => {
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-sm font-medium text-gray-700">{item.subject}</span>
                                         <span className={`px-2 py-1 text-xs font-semibold rounded ${item.progress >= 90 ? 'bg-green-100 text-green-800' :
-                                                item.progress >= 80 ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-yellow-100 text-yellow-800'
+                                            item.progress >= 80 ? 'bg-blue-100 text-blue-800' :
+                                                'bg-yellow-100 text-yellow-800'
                                             }`}>
                                             {item.progress}%
                                         </span>

@@ -11,6 +11,7 @@ const getKelasTeaching = async (req, res) => {
         k.id,
         k.nama_kelas,
         k.tingkat,
+        ta.id as tahun_ajaran_id,
         ta.tahun_ajaran,
         COUNT(DISTINCT sk.siswa_id) as jumlah_siswa
       FROM kelas k
@@ -292,10 +293,76 @@ const createRapor = async (req, res) => {
   }
 };
 
+// List mapel yang diajar guru untuk kelas tertentu di tahun ajaran aktif
+const getMapelForClass = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const { kelasId } = req.params;
+    const connection = await pool.getConnection();
+
+    // Validasi guru wali kelas atau guru mengajar di kelas tsb
+    const [auth] = await connection.query(
+      `SELECT 1 FROM kelas WHERE id = ? AND (wali_kelas_id = ? OR EXISTS (
+        SELECT 1 FROM guru_mapel gm WHERE gm.kelas_id = kelas.id AND gm.guru_id = ?
+      )) LIMIT 1`,
+      [kelasId, guruId, guruId]
+    );
+    if (auth.length === 0) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    const [mapel] = await connection.query(
+      `SELECT mp.id, mp.nama_mapel
+       FROM guru_mapel gm
+       JOIN mata_pelajaran mp ON gm.mapel_id = mp.id
+       JOIN tahun_ajaran ta ON gm.tahun_ajaran_id = ta.id
+       WHERE gm.guru_id = ? AND gm.kelas_id = ? AND ta.is_aktif = TRUE
+       ORDER BY mp.nama_mapel ASC`,
+      [guruId, kelasId]
+    );
+
+    connection.release();
+    res.json(mapel);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Ambil rapor id berdasarkan siswa dan tahun ajaran (untuk ekspor)
+const getRaporIdBySiswa = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const { siswaId, tahunAjaranId } = req.query;
+    const connection = await pool.getConnection();
+
+    // Pastikan guru adalah wali kelas siswa tersebut pada tahun ajaran tsb
+    const [valid] = await connection.query(
+      `SELECT r.id, r.kelas_id FROM rapor r
+       JOIN kelas k ON r.kelas_id = k.id
+       WHERE r.siswa_id = ? AND r.tahun_ajaran_id = ? AND k.wali_kelas_id = ?
+       LIMIT 1`,
+      [siswaId, tahunAjaranId, guruId]
+    );
+
+    connection.release();
+
+    if (valid.length === 0) {
+      return res.status(404).json({ message: "Rapor belum dibuat" });
+    }
+
+    res.json({ raporId: valid[0].id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getKelasTeaching,
   getSiswaInKelas,
   inputNilai,
   getDashboardKelas,
   createRapor,
+  getMapelForClass,
+  getRaporIdBySiswa,
 };

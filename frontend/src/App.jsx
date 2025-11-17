@@ -12,6 +12,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import MBTITest from './pages/MBTITest';
 import MBTIResults from './pages/MBTIResults';
+import StudentGrades from './pages/StudentGrades';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -38,6 +39,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="siswa">
                   <StudentDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/grades"
+              element={
+                <ProtectedRoute requiredRole="siswa">
+                  <StudentGrades />
                 </ProtectedRoute>
               }
             />

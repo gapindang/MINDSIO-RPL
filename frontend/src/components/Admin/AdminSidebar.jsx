@@ -111,7 +111,7 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-300 hover:bg-red-900 hover:text-red-100 transition-colors duration-200"
                     >
                         <MdLogout size={20} />
-                        <span className="font-medium">Logout</span>
+                        <span className="font-medium">Keluar</span>
                     </button>
                 </div>
             </aside>

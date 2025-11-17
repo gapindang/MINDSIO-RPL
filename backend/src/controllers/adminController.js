@@ -486,6 +486,31 @@ const getRaporById = async (req, res) => {
   }
 };
 
+// Reset/Delete MBTI result for a student (admin only)
+const resetMBTIResult = async (req, res) => {
+  try {
+    const { siswaId } = req.params;
+    const connection = await pool.getConnection();
+    const [existing] = await connection.query(
+      "SELECT id FROM mbti_hasil WHERE siswa_id = ?",
+      [siswaId]
+    );
+
+    if (existing.length === 0) {
+      connection.release();
+      return res.status(404).json({ message: "Hasil MBTI tidak ditemukan" });
+    }
+
+    await connection.query("DELETE FROM mbti_hasil WHERE siswa_id = ?", [
+      siswaId,
+    ]);
+    connection.release();
+    res.json({ message: "Hasil MBTI berhasil direset" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -506,4 +531,5 @@ module.exports = {
   getDashboard,
   getAllRapor,
   getRaporById,
+  resetMBTIResult,
 };

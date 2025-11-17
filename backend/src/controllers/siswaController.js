@@ -51,6 +51,7 @@ const getRaporSummary = async (req, res) => {
     const [rapor] = await connection.query(
       `SELECT 
         r.id,
+        r.tahun_ajaran_id,
         r.rata_rata_nilai,
         r.komentar_wali_kelas,
         r.apresiasi_wali_kelas,
@@ -98,7 +99,7 @@ const getMBTIResult = async (req, res) => {
     connection.release();
 
     if (mbti.length === 0) {
-      return res.status(404).json({ message: "Hasil MBTI belum diunggah" });
+      return res.status(404).json({ message: "Hasil MBTI belum tersedia" });
     }
 
     res.json(mbti[0]);
@@ -107,20 +108,25 @@ const getMBTIResult = async (req, res) => {
   }
 };
 
-const uploadMBTIResult = async (req, res) => {
+const saveMBTIResult = async (req, res) => {
   try {
     const siswaId = req.user.id;
     const {
       mbti_type,
-      deskripsi,
-      kekuatan_1,
-      kekuatan_2,
-      kekuatan_3,
-      gaya_belajar,
+      deskripsi = null,
+      kekuatan_1 = null,
+      kekuatan_2 = null,
+      kekuatan_3 = null,
+      gaya_belajar = null,
     } = req.body;
-    const fileName = req.file ? req.file.filename : null;
 
     const connection = await pool.getConnection();
+
+    // Ambil referensi gaya belajar untuk tipe MBTI ini
+    const [referensi] = await connection.query(
+      "SELECT deskripsi, gaya_belajar, tips_1, tips_2, tips_3 FROM gaya_belajar_referensi WHERE mbti_type = ?",
+      [mbti_type]
+    );
 
     // Cek apakah sudah ada hasil MBTI sebelumnya
     const [existing] = await connection.query(
@@ -129,49 +135,29 @@ const uploadMBTIResult = async (req, res) => {
     );
 
     if (existing.length > 0) {
-      // Update
-      await connection.query(
-        `UPDATE mbti_hasil 
-        SET mbti_type = ?, deskripsi = ?, kekuatan_1 = ?, kekuatan_2 = ?, kekuatan_3 = ?, 
-            gaya_belajar = ?, file_hasil = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE siswa_id = ?`,
-        [
-          mbti_type,
-          deskripsi,
-          kekuatan_1,
-          kekuatan_2,
-          kekuatan_3,
-          gaya_belajar,
-          fileName,
-          siswaId,
-        ]
-      );
+      connection.release();
+      return res
+        .status(409)
+        .json({ message: "Hasil MBTI sudah ada. Hubungi admin untuk reset." });
     } else {
       // Insert
       const mbtiId = uuidv4();
       await connection.query(
         `INSERT INTO mbti_hasil 
-        (id, siswa_id, mbti_type, deskripsi, kekuatan_1, kekuatan_2, kekuatan_3, gaya_belajar, file_hasil) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (id, siswa_id, mbti_type, deskripsi, kekuatan_1, kekuatan_2, kekuatan_3, gaya_belajar) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           mbtiId,
           siswaId,
           mbti_type,
-          deskripsi,
+          deskripsi || referensi[0]?.deskripsi || null,
           kekuatan_1,
           kekuatan_2,
           kekuatan_3,
-          gaya_belajar,
-          fileName,
+          gaya_belajar || referensi[0]?.gaya_belajar || null,
         ]
       );
     }
-
-    // Ambil rekomendasi pembelajaran dari tabel referensi
-    const [referensi] = await connection.query(
-      "SELECT tips_1, tips_2, tips_3 FROM gaya_belajar_referensi WHERE mbti_type = ?",
-      [mbti_type]
-    );
 
     if (referensi.length > 0) {
       await connection.query(
@@ -191,7 +177,7 @@ const uploadMBTIResult = async (req, res) => {
 
     res.json({
       message:
-        existing.length > 0 ? "MBTI hasil diperbarui" : "MBTI hasil diunggah",
+        existing.length > 0 ? "Hasil MBTI diperbarui" : "Hasil MBTI disimpan",
       data: result[0],
     });
   } catch (error) {
@@ -235,6 +221,6 @@ module.exports = {
   getNilaiRapor,
   getRaporSummary,
   getMBTIResult,
-  uploadMBTIResult,
+  saveMBTIResult,
   getKelasInfo,
 };

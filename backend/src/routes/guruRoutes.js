@@ -6,6 +6,8 @@ const {
   inputNilai,
   getDashboardKelas,
   createRapor,
+  getMapelForClass,
+  getRaporIdBySiswa,
 } = require("../controllers/guruController");
 
 const router = express.Router();
@@ -18,5 +20,20 @@ router.get("/kelas/:kelasId/siswa", getSiswaInKelas);
 router.post("/nilai", inputNilai);
 router.get("/kelas/:kelasId/dashboard", getDashboardKelas);
 router.post("/rapor", createRapor);
+router.get("/kelas/:kelasId/mapel", getMapelForClass);
+router.get("/rapor/by-siswa", getRaporIdBySiswa);
+
+// Export per-rapor for guru (wali kelas)
+const {
+  exportRaporByIdCSV,
+  exportRaporByIdJSON,
+  exportRaporByIdPDF,
+  exportRaporByIdExcel,
+} = require("../controllers/exportController");
+
+router.get("/rapor/:raporId/csv", exportRaporByIdCSV);
+router.get("/rapor/:raporId/json", exportRaporByIdJSON);
+router.get("/rapor/:raporId/pdf", exportRaporByIdPDF);
+router.get("/rapor/:raporId/excel", exportRaporByIdExcel);
 
 module.exports = router;

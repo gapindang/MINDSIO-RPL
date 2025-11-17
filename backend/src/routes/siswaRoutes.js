@@ -4,7 +4,7 @@ const {
   getNilaiRapor,
   getRaporSummary,
   getMBTIResult,
-  uploadMBTIResult,
+  saveMBTIResult,
   getKelasInfo,
 } = require("../controllers/siswaController");
 
@@ -16,7 +16,7 @@ router.use(authenticateToken, authorizeRole("siswa"));
 router.get("/nilai", getNilaiRapor);
 router.get("/rapor-summary", getRaporSummary);
 router.get("/mbti", getMBTIResult);
-router.post("/mbti/upload", uploadMBTIResult);
+router.post("/mbti", saveMBTIResult);
 router.get("/kelas-info", getKelasInfo);
 
 module.exports = router;

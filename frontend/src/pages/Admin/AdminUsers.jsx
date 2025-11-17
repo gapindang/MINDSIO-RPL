@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import { adminAPI } from '../../services/api';
 import { AlertCircle, Loader, Search } from 'lucide-react';
-import { MdAdd, MdEdit, MdDelete, MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import { MdAdd, MdEdit, MdDelete, MdVisibility, MdVisibilityOff, MdRefresh } from 'react-icons/md';
 
 const AdminUsers = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -146,6 +146,19 @@ const AdminUsers = () => {
         return badges[role] || 'bg-gray-100 text-gray-800';
     };
 
+    const handleResetMBTI = async (user) => {
+        if (user.role !== 'siswa') return;
+        const confirmed = window.confirm(`Reset hasil MBTI untuk ${user.nama_lengkap}?`);
+        if (!confirmed) return;
+        try {
+            await adminAPI.resetMBTI(user.id);
+            alert('Hasil MBTI berhasil direset. Siswa dapat mengulang tes.');
+        } catch (err) {
+            const message = err?.response?.data?.message || 'Gagal mereset hasil MBTI';
+            alert(message);
+        }
+    };
+
     const getRoleLabel = (role) => {
         const labels = {
             admin: 'Admin',
@@ -273,6 +286,15 @@ const AdminUsers = () => {
                                             >
                                                 <MdEdit size={18} />
                                             </button>
+                                            {user.role === 'siswa' && (
+                                                <button
+                                                    onClick={() => handleResetMBTI(user)}
+                                                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                                    title="Reset MBTI"
+                                                >
+                                                    <MdRefresh size={18} />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleDeleteUser(user.id)}
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
