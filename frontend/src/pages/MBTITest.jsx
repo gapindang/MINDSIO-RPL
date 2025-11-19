@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { siswaAPI } from '../services/api';
+import StudentSidebar from '../components/Student/StudentSidebar';
 
 const MBTITest = () => {
     const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
     const [checking, setChecking] = useState(true);
@@ -14,11 +17,9 @@ const MBTITest = () => {
             try {
                 setChecking(true);
                 await siswaAPI.getMBTIResult();
-                // If exists, block retest and redirect to results
                 setBlocked(true);
                 navigate('/student/my-results', { replace: true });
             } catch (e) {
-                // 404 means no result yet; allow test
                 setBlocked(false);
             } finally {
                 setChecking(false);
@@ -28,7 +29,6 @@ const MBTITest = () => {
     }, [navigate]);
 
     const questions = [
-        // E vs I
         {
             id: 1, question: 'Di sebuah pesta, kamu cenderung...', options: [
                 { value: 'E', text: 'Berbaur antusias dengan banyak orang' },
@@ -164,7 +164,6 @@ const MBTITest = () => {
             ]
         },
 
-        // Additional rounds for balance (E/I, S/N, T/F, J/P)
         {
             id: 17, question: 'Proyek kelompok bagi kamu adalah...', options: [
                 { value: 'E', text: 'Menyenangkan dan memberi energi' },
@@ -305,12 +304,10 @@ const MBTITest = () => {
         if (currentQuestion < questions.length - 1) {
             setCurrentQuestion(currentQuestion + 1);
         } else {
-            // Calculate MBTI type and save to backend
             const result = calculateMBTI(newAnswers);
             try {
                 await siswaAPI.uploadMBTIResult({ mbti_type: result });
             } catch (e) {
-                // Non-blocking; still navigate to results
                 console.error('Gagal menyimpan hasil MBTI:', e);
             }
             navigate('/student/my-results', { state: { mbtiType: result } });
@@ -318,7 +315,6 @@ const MBTITest = () => {
     };
 
     const calculateMBTI = (answers) => {
-        // Simple calculation - count occurrences
         const counts = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
         Object.values(answers).forEach(value => {
             counts[value]++;
@@ -337,67 +333,76 @@ const MBTITest = () => {
 
     if (checking) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-600">Memeriksa status tes MBTI...</div>
+            <div className="min-h-screen bg-gray-50 pt-16">
+                <StudentSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+                <div className="md:ml-64 flex items-center justify-center text-gray-600 min-h-[calc(100vh-4rem)] transition-all duration-300">Memeriksa status tes MBTI...</div>
+            </div>
         );
     }
 
     if (blocked) {
-        return null; // Redirected to results already
+        return null;
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
-            <div className="max-w-2xl mx-auto">
-                <div className="text-center mb-8">
-                    <div className="inline-flex p-3 bg-blue-600 rounded-full mb-4">
-                        <Sparkles className="h-8 w-8 text-white" />
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pt-16">
+            {/* Sidebar */}
+            <StudentSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+            {/* Main Content */}
+            <div className="md:ml-64 py-12 px-4 transition-all duration-300">
+                <div className="max-w-2xl mx-auto">
+                    <div className="text-center mb-8">
+                        <div className="inline-flex p-3 bg-blue-600 rounded-full mb-4">
+                            <Sparkles className="h-8 w-8 text-white" />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tes Kepribadian MBTI</h1>
+                        <p className="text-gray-600">Temukan gaya belajar Anda</p>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Tes Kepribadian MBTI</h1>
-                    <p className="text-gray-600">Temukan gaya belajar Anda</p>
+
+                    {/* Progress Bar */}
+                    <div className="mb-8">
+                        <div className="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Pertanyaan {currentQuestion + 1} dari {questions.length}</span>
+                            <span>{Math.round(progress)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${progress}%` }}
+                            ></div>
+                        </div>
+                    </div>
+
+                    {/* Question Card */}
+                    <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
+                        <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                            {questions[currentQuestion].question}
+                        </h2>
+
+                        <div className="space-y-4">
+                            {questions[currentQuestion].options.map((option, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleAnswer(option.value)}
+                                    className="w-full p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200"
+                                >
+                                    <span className="text-gray-900 font-medium">{option.text}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Navigation */}
+                    {currentQuestion > 0 && (
+                        <button
+                            onClick={() => setCurrentQuestion(currentQuestion - 1)}
+                            className="mt-6 text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            ← Pertanyaan Sebelumnya
+                        </button>
+                    )}
                 </div>
-
-                {/* Progress Bar */}
-                <div className="mb-8">
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                        <span>Pertanyaan {currentQuestion + 1} dari {questions.length}</span>
-                        <span>{Math.round(progress)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                        ></div>
-                    </div>
-                </div>
-
-                {/* Question Card */}
-                <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-                        {questions[currentQuestion].question}
-                    </h2>
-
-                    <div className="space-y-4">
-                        {questions[currentQuestion].options.map((option, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleAnswer(option.value)}
-                                className="w-full p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200"
-                            >
-                                <span className="text-gray-900 font-medium">{option.text}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Navigation */}
-                {currentQuestion > 0 && (
-                    <button
-                        onClick={() => setCurrentQuestion(currentQuestion - 1)}
-                        className="mt-6 text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                        ← Pertanyaan Sebelumnya
-                    </button>
-                )}
             </div>
         </div>
     );

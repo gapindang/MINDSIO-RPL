@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TrendingUp, Award, BookOpen, Sparkles } from 'lucide-react';
 import StatCard from '../components/StatCard';
+import StudentSidebar from '../components/Student/StudentSidebar';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const StudentDashboard = () => {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
     const stats = [
         { title: 'IPK Saat Ini', value: '3.70', subtitle: '+0,1 dari bulan lalu', icon: TrendingUp, color: 'blue' },
         { title: 'Mata Pelajaran', value: '5', subtitle: 'Aktif semester ini', icon: BookOpen, color: 'purple' },
@@ -36,8 +40,12 @@ const StudentDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="min-h-screen bg-gray-50 pt-16">
+            {/* Sidebar */}
+            <StudentSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+            {/* Main Content */}
+            <div className="md:ml-64 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Selamat datang kembali, Siswa!</h1>
                     <p className="text-gray-600 mt-1">Berikut ringkasan perkembangan akademik Anda</p>

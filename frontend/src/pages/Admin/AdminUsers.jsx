@@ -15,6 +15,8 @@ const AdminUsers = () => {
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
     const [selectedUser, setSelectedUser] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -67,6 +69,18 @@ const AdminUsers = () => {
         }
 
         setFilteredUsers(filtered);
+        setCurrentPage(1); // Reset to first page when filtering
+    };
+
+    // Pagination logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleOpenModal = (mode, user = null) => {
@@ -180,14 +194,14 @@ const AdminUsers = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 pt-16">
             {/* Sidebar */}
             <AdminSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
             {/* Main Content */}
-            <main className="md:ml-64 p-4 md:p-8">
+            <main className="md:ml-64 p-4 md:p-8 transition-all duration-300">
                 {/* Header */}
-                <div className="mb-8 mt-12 md:mt-0 flex justify-between items-center">
+                <div className="mb-8 flex justify-between items-center">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-900">Manajemen Akun</h1>
                         <p className="text-gray-600 mt-2">Kelola akun guru, siswa, dan admin</p>
@@ -229,15 +243,14 @@ const AdminUsers = () => {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter Peran
+                                Role Filter
                             </label>
                             <select
                                 value={filterRole}
                                 onChange={(e) => setFilterRole(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                             >
-                                <option value="all">Semua Peran</option>
-                                <option value="admin">Admin</option>
+                                <option value="all">Semua Role</option>
                                 <option value="guru">Guru</option>
                                 <option value="siswa">Siswa</option>
                             </select>
@@ -264,7 +277,7 @@ const AdminUsers = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {filteredUsers.map((user) => (
+                            {currentUsers.map((user) => (
                                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">{user.nama_lengkap}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
@@ -314,6 +327,65 @@ const AdminUsers = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Pagination */}
+                {filteredUsers.length > 0 && totalPages > 1 && (
+                    <div className="bg-white rounded-lg shadow mt-4 px-6 py-4">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                                Menampilkan {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredUsers.length)} dari {filteredUsers.length} pengguna
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Sebelumnya
+                                </button>
+
+                                <div className="flex gap-1">
+                                    {[...Array(totalPages)].map((_, index) => {
+                                        const pageNumber = index + 1;
+                                        // Show first page, last page, current page, and pages around current
+                                        if (
+                                            pageNumber === 1 ||
+                                            pageNumber === totalPages ||
+                                            (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={pageNumber}
+                                                    onClick={() => handlePageChange(pageNumber)}
+                                                    className={`px-3 py-2 text-sm rounded-lg transition-colors ${currentPage === pageNumber
+                                                            ? 'bg-blue-600 text-white'
+                                                            : 'border border-gray-300 hover:bg-gray-50'
+                                                        }`}
+                                                >
+                                                    {pageNumber}
+                                                </button>
+                                            );
+                                        } else if (
+                                            pageNumber === currentPage - 2 ||
+                                            pageNumber === currentPage + 2
+                                        ) {
+                                            return <span key={pageNumber} className="px-2 text-gray-500">...</span>;
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Selanjutnya
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Modal */}
                 {showModal && (

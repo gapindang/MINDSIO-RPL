@@ -122,99 +122,101 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center px-4 py-8">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center px-4 py-8 pt-16">
+            <div className="w-full max-w-2xl">
                 {/* Card */}
-                <div className="bg-white rounded-lg shadow-xl p-8">
+                <div className="bg-white rounded-lg shadow-xl p-6 md:p-8">
                     {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                            <UserPlus className="w-6 h-6 text-green-600" />
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-3">
+                            <UserPlus className="w-6 h-6 text-blue-600" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Daftar</h1>
-                        <p className="text-gray-600">Buat akun Mindsio baru Anda</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Daftar</h1>
+                        <p className="text-sm text-gray-600">Buat akun Mindsio baru Anda</p>
                     </div>
 
                     {/* Error Message */}
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-red-700">{error}</p>
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-red-700">{error}</p>
                         </div>
                     )}
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Username */}
-                        <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                                Username
-                            </label>
-                            <input
-                                id="username"
-                                name="username"
-                                type="text"
-                                value={formData.username}
-                                onChange={handleChange}
-                                placeholder="pilih username unik"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
-                            />
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                        {/* Row 1: Username & Email */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label htmlFor="username" className="block text-xs font-medium text-gray-700 mb-1">
+                                    Username
+                                </label>
+                                <input
+                                    id="username"
+                                    name="username"
+                                    type="text"
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    placeholder="pilih username unik"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1">
+                                    Email
+                                </label>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="email@example.com"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+                                />
+                            </div>
                         </div>
 
-                        {/* Email */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                Email
-                            </label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="email@example.com"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
-                            />
+                        {/* Row 2: Nama Lengkap & Role */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label htmlFor="nama_lengkap" className="block text-xs font-medium text-gray-700 mb-1">
+                                    Nama Lengkap
+                                </label>
+                                <input
+                                    id="nama_lengkap"
+                                    name="nama_lengkap"
+                                    type="text"
+                                    value={formData.nama_lengkap}
+                                    onChange={handleChange}
+                                    placeholder="masukkan nama lengkap"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="role" className="block text-xs font-medium text-gray-700 mb-1">
+                                    Peran / Role
+                                </label>
+                                <select
+                                    id="role"
+                                    name="role"
+                                    value={formData.role}
+                                    onChange={handleChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+                                >
+                                    <option value="siswa">Siswa</option>
+                                    <option value="guru">Guru</option>
+                                </select>
+                            </div>
                         </div>
 
-                        {/* Nama Lengkap */}
-                        <div>
-                            <label htmlFor="nama_lengkap" className="block text-sm font-medium text-gray-700 mb-1">
-                                Nama Lengkap
-                            </label>
-                            <input
-                                id="nama_lengkap"
-                                name="nama_lengkap"
-                                type="text"
-                                value={formData.nama_lengkap}
-                                onChange={handleChange}
-                                placeholder="masukkan nama lengkap"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
-                            />
-                        </div>
-
-                        {/* Role Selection */}
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                                Peran / Role
-                            </label>
-                            <select
-                                id="role"
-                                name="role"
-                                value={formData.role}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
-                            >
-                                <option value="siswa">Siswa</option>
-                                <option value="guru">Guru</option>
-                            </select>
-                        </div>
-
-                        {/* NISN - Siswa Only */}
+                        {/* Row 3: NISN/NIP */}
                         {formData.role === 'siswa' && (
                             <div>
-                                <label htmlFor="nisn" className="block text-sm font-medium text-gray-700 mb-1">
-                                    NISN (Nomor Induk Siswa Nasional)
+                                <label htmlFor="nisn" className="block text-xs font-medium text-gray-700 mb-1">
+                                    NISN
                                 </label>
                                 <input
                                     id="nisn"
@@ -223,16 +225,15 @@ const RegisterPage = () => {
                                     value={formData.nisn}
                                     onChange={handleChange}
                                     placeholder="masukkan NISN"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
                                 />
                             </div>
                         )}
 
-                        {/* NIP - Guru Only */}
                         {formData.role === 'guru' && (
                             <div>
-                                <label htmlFor="nip" className="block text-sm font-medium text-gray-700 mb-1">
-                                    NIP (Nomor Induk Pegawai)
+                                <label htmlFor="nip" className="block text-xs font-medium text-gray-700 mb-1">
+                                    NIP
                                 </label>
                                 <input
                                     id="nip"
@@ -241,64 +242,65 @@ const RegisterPage = () => {
                                     value={formData.nip}
                                     onChange={handleChange}
                                     placeholder="masukkan NIP"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
                                 />
                             </div>
                         )}
 
-                        {/* Password */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                                Password
-                            </label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="minimal 6 karakter"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
-                            />
-                        </div>
+                        {/* Row 4: Password & Confirm Password */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label htmlFor="password" className="block text-xs font-medium text-gray-700 mb-1">
+                                    Password
+                                </label>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="minimal 6 karakter"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+                                />
+                            </div>
 
-                        {/* Confirm Password */}
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                                Konfirmasi Password
-                            </label>
-                            <input
-                                id="confirmPassword"
-                                name="confirmPassword"
-                                type="password"
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
-                                placeholder="konfirmasi password"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-sm"
-                            />
+                            <div>
+                                <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-700 mb-1">
+                                    Konfirmasi Password
+                                </label>
+                                <input
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    type="password"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="konfirmasi password"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+                                />
+                            </div>
                         </div>
 
                         {/* Submit Button */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-2 px-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition duration-200 mt-6"
+                            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition duration-200 mt-4 text-sm"
                         >
                             {loading ? 'Sedang mendaftar...' : 'Daftar'}
                         </button>
                     </form>
 
                     {/* Login Link */}
-                    <p className="text-center text-gray-600 text-sm mt-6">
+                    <p className="text-center text-gray-600 text-xs mt-4">
                         Sudah punya akun?{' '}
-                        <Link to="/login" className="text-green-600 hover:text-green-700 font-medium">
+                        <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
                             Masuk di sini
                         </Link>
                     </p>
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-gray-600 text-xs mt-6">
+                <p className="text-center text-gray-600 text-xs mt-4">
                     © 2025 Mindsio. Hak cipta dilindungi.
                 </p>
             </div>

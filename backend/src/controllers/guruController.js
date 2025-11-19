@@ -357,6 +357,48 @@ const getRaporIdBySiswa = async (req, res) => {
   }
 };
 
+// Ambil hasil MBTI siswa dalam kelas
+const getMBTISiswaInKelas = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const { kelasId } = req.params;
+    const connection = await pool.getConnection();
+
+    // Verifikasi guru mengajar kelas ini
+    const [verif] = await connection.query(
+      "SELECT id FROM kelas WHERE id = ? AND wali_kelas_id = ?",
+      [kelasId, guruId]
+    );
+
+    if (verif.length === 0) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    const [mbtiData] = await connection.query(
+      `SELECT 
+        u.id,
+        u.nisn,
+        u.nama_lengkap,
+        mbti.mbti_type as tipe_mbti,
+        mbti.deskripsi,
+        CONCAT_WS('\n', mbti.rekomendasi_belajar_1, mbti.rekomendasi_belajar_2, mbti.rekomendasi_belajar_3) as rekomendasi_belajar,
+        mbti.tanggal_upload as tanggal_tes
+      FROM siswa_kelas sk
+      JOIN users u ON sk.siswa_id = u.id
+      LEFT JOIN mbti_hasil mbti ON u.id = mbti.siswa_id
+      WHERE sk.kelas_id = ?
+      ORDER BY u.nama_lengkap ASC`,
+      [kelasId]
+    );
+
+    connection.release();
+    res.json(mbtiData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getKelasTeaching,
   getSiswaInKelas,
@@ -365,4 +407,5 @@ module.exports = {
   createRapor,
   getMapelForClass,
   getRaporIdBySiswa,
+  getMBTISiswaInKelas,
 };

@@ -8,7 +8,6 @@ const HomePage = () => {
     const { isAuthenticated, user } = useAuth();
 
     useEffect(() => {
-        // Redirect admin ke admin dashboard
         if (isAuthenticated && user?.role === 'admin') {
             navigate('/admin/dashboard');
         } else if (isAuthenticated && user?.role === 'guru') {
@@ -53,7 +52,7 @@ const HomePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pt-16">
             {/* Hero Section */}
             <section className="py-20 px-4">
                 <div className="max-w-4xl mx-auto text-center">

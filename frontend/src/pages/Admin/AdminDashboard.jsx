@@ -47,14 +47,14 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 pt-16">
             {/* Sidebar */}
             <AdminSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
             {/* Main Content */}
-            <main className="md:ml-64 p-4 md:p-8">
+            <main className="md:ml-64 p-4 md:p-8 transition-all duration-300">
                 {/* Header */}
-                <div className="mb-8 mt-12 md:mt-0">
+                <div className="mb-8">
                     <h1 className="text-4xl font-bold text-gray-900">Dashboard Admin</h1>
                     <p className="text-gray-600 mt-2">Selamat datang di panel admin Mindsio</p>
                 </div>

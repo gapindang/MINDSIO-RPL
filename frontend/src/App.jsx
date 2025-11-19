@@ -8,11 +8,17 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import MBTITest from './pages/MBTITest';
 import MBTIResults from './pages/MBTIResults';
 import StudentGrades from './pages/StudentGrades';
+
+// Teacher Pages
+import TeacherDashboard from './pages/Teacher/TeacherDashboard';
+import InputNilai from './pages/Teacher/InputNilai';
+import KomentarApresiasi from './pages/Teacher/KomentarApresiasi';
+import MBTISiswa from './pages/Teacher/MBTISiswa';
+import CetakRapor from './pages/Teacher/CetakRapor';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -73,6 +79,38 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="guru">
                   <TeacherDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/input-nilai/:kelasId"
+              element={
+                <ProtectedRoute requiredRole="guru">
+                  <InputNilai />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/komentar/:kelasId"
+              element={
+                <ProtectedRoute requiredRole="guru">
+                  <KomentarApresiasi />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/mbti-siswa/:kelasId"
+              element={
+                <ProtectedRoute requiredRole="guru">
+                  <MBTISiswa />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/teacher/cetak-rapor/:kelasId"
+              element={
+                <ProtectedRoute requiredRole="guru">
+                  <CetakRapor />
                 </ProtectedRoute>
               }
             />

@@ -3,15 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import {
     MdDashboard,
-    MdPeople,
-    MdBook,
-    MdCalendarToday,
-    MdAssignment,
+    MdAssessment,
+    MdMessage,
+    MdPsychology,
+    MdPrint,
     MdLogout
 } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext';
 
-const AdminSidebar = ({ isOpen, toggleSidebar }) => {
+const TeacherSidebar = ({ isOpen, toggleSidebar, kelasId }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout } = useAuth();
@@ -20,28 +20,30 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
         {
             icon: MdDashboard,
             label: 'Dashboard',
-            path: '/admin/dashboard',
+            path: '/teacher/dashboard',
         },
-        {
-            icon: MdPeople,
-            label: 'Manajemen Akun',
-            path: '/admin/users',
-        },
-        {
-            icon: MdBook,
-            label: 'Mata Pelajaran',
-            path: '/admin/mata-pelajaran',
-        },
-        {
-            icon: MdCalendarToday,
-            label: 'Tahun Ajaran & Kelas',
-            path: '/admin/tahun-ajaran',
-        },
-        {
-            icon: MdAssignment,
-            label: 'Laporan Rapor',
-            path: '/admin/laporan',
-        },
+        ...(kelasId ? [
+            {
+                icon: MdAssessment,
+                label: 'Input Nilai',
+                path: `/teacher/input-nilai/${kelasId}`,
+            },
+            {
+                icon: MdMessage,
+                label: 'Komentar & Apresiasi',
+                path: `/teacher/komentar/${kelasId}`,
+            },
+            {
+                icon: MdPsychology,
+                label: 'Hasil Tes MBTI',
+                path: `/teacher/mbti-siswa/${kelasId}`,
+            },
+            {
+                icon: MdPrint,
+                label: 'Cetak Rapor',
+                path: `/teacher/cetak-rapor/${kelasId}`,
+            },
+        ] : []),
     ];
 
     const isActive = (path) => location.pathname === path;
@@ -77,7 +79,7 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
                 {/* Logo */}
                 <div className="p-6 border-b border-blue-800">
                     <h1 className="text-2xl font-bold">Mindsio</h1>
-                    <p className="text-sm text-blue-300">Admin Panel</p>
+                    <p className="text-sm text-blue-300">Panel Guru</p>
                 </div>
 
                 {/* Menu Items */}
@@ -90,7 +92,9 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
                                 key={item.path}
                                 onClick={() => {
                                     navigate(item.path);
-                                    toggleSidebar();
+                                    if (window.innerWidth < 768) {
+                                        toggleSidebar();
+                                    }
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${active
                                     ? 'bg-blue-600 text-white'
@@ -119,4 +123,4 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
     );
 };
 
-export default AdminSidebar;
+export default TeacherSidebar;

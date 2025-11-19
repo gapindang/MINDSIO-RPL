@@ -87,7 +87,7 @@ const TeacherDashboard = () => {
             const { data } = await guruAPI.getRaporIdBySiswa(siswa.id, tahunAjaranId);
             const raporId = data.raporId;
             // Download PDF
-            const pdf = await adminAPI.exportRaporPDF(raporId);
+            const pdf = await guruAPI.exportRaporPDF(raporId);
             const blob = pdf.data;
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -103,7 +103,7 @@ const TeacherDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Dasbor Guru</h1>

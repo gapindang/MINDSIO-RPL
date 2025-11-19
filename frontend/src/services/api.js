@@ -137,6 +137,8 @@ export const adminAPI = {
 // ============================================================
 
 export const guruAPI = {
+  getKelas: () => api.get("/guru/kelas"),
+
   getKelasTeaching: () => api.get("/guru/kelas"),
 
   getSiswaInKelas: (kelasId) => api.get(`/guru/kelas/${kelasId}/siswa`),
@@ -151,6 +153,21 @@ export const guruAPI = {
 
   getRaporIdBySiswa: (siswaId, tahunAjaranId) =>
     api.get(`/guru/rapor/by-siswa`, { params: { siswaId, tahunAjaranId } }),
+
+  getMBTISiswaInKelas: (kelasId) => api.get(`/guru/kelas/${kelasId}/mbti`),
+
+  // Export per-rapor (akses untuk guru wali kelas)
+  exportRaporCSV: (raporId) =>
+    api.get(`/guru/rapor/${raporId}/csv`, { responseType: "blob" }),
+
+  exportRaporJSON: (raporId) =>
+    api.get(`/guru/rapor/${raporId}/json`, { responseType: "blob" }),
+
+  exportRaporPDF: (raporId) =>
+    api.get(`/guru/rapor/${raporId}/pdf`, { responseType: "blob" }),
+
+  exportRaporExcel: (raporId) =>
+    api.get(`/guru/rapor/${raporId}/excel`, { responseType: "blob" }),
 };
 
 // ============================================================

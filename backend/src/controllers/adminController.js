@@ -8,7 +8,7 @@ const getAllUsers = async (req, res) => {
     const connection = await pool.getConnection();
 
     let query =
-      "SELECT id, username, email, role, nama_lengkap, nisn, nip, is_active FROM users WHERE 1=1";
+      "SELECT id, username, email, role, nama_lengkap, nisn, nip, is_active FROM users WHERE role != 'admin'";
     const params = [];
 
     if (role) {

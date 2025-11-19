@@ -8,6 +8,7 @@ const {
   createRapor,
   getMapelForClass,
   getRaporIdBySiswa,
+  getMBTISiswaInKelas,
 } = require("../controllers/guruController");
 
 const router = express.Router();
@@ -22,6 +23,7 @@ router.get("/kelas/:kelasId/dashboard", getDashboardKelas);
 router.post("/rapor", createRapor);
 router.get("/kelas/:kelasId/mapel", getMapelForClass);
 router.get("/rapor/by-siswa", getRaporIdBySiswa);
+router.get("/kelas/:kelasId/mbti", getMBTISiswaInKelas);
 
 // Export per-rapor for guru (wali kelas)
 const {
