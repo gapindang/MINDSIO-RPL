@@ -69,10 +69,9 @@ const AdminUsers = () => {
         }
 
         setFilteredUsers(filtered);
-        setCurrentPage(1); // Reset to first page when filtering
+        setCurrentPage(1);
     };
 
-    // Pagination logic
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
@@ -358,8 +357,8 @@ const AdminUsers = () => {
                                                     key={pageNumber}
                                                     onClick={() => handlePageChange(pageNumber)}
                                                     className={`px-3 py-2 text-sm rounded-lg transition-colors ${currentPage === pageNumber
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'border border-gray-300 hover:bg-gray-50'
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'border border-gray-300 hover:bg-gray-50'
                                                         }`}
                                                 >
                                                     {pageNumber}
