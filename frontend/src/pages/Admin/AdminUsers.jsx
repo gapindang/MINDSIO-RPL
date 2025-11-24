@@ -59,7 +59,6 @@ const AdminUsers = () => {
             filtered = filtered.filter(u => u.role === filterRole);
         }
 
-        // Filter by search term
         if (searchTerm) {
             filtered = filtered.filter(u =>
                 u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
