@@ -1,6 +1,7 @@
 const pool = require("../config/database");
 const PDFDocument = require("pdfkit");
 const XLSX = require("xlsx");
+const { generateRaporPDF } = require("../utils/pdfGenerator");
 
 /**
  * Export rapor ke CSV format
@@ -607,74 +608,104 @@ const exportRaporByIdPDF = async (req, res) => {
       return res.status(403).json({ message: "Akses ditolak" });
     }
 
-    const [rows] = await connection.query(
-      `
-      SELECT 
-        r.id,
-        u.nama_lengkap as nama_siswa,
-        u.nisn,
-        k.nama_kelas,
-        ta.tahun_ajaran,
-        r.rata_rata_nilai,
-        r.komentar_wali_kelas,
-        r.apresiasi_wali_kelas,
-        r.tanggal_dibuat
-      FROM rapor r
-      JOIN users u ON r.siswa_id = u.id
-      JOIN kelas k ON r.kelas_id = k.id
-      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
-      WHERE r.id = ?
-      LIMIT 1
-    `,
+    // Ambil data rapor lengkap
+    const [raporRows] = await connection.query(
+      `SELECT r.*, k.nama_kelas, ta.tahun_ajaran, ta.semester, r.siswa_id, r.kelas_id, r.tahun_ajaran_id
+       FROM rapor r
+       JOIN kelas k ON r.kelas_id = k.id
+       JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+       WHERE r.id = ?
+       LIMIT 1`,
       [raporId]
+    );
+
+    if (raporRows.length === 0) {
+      connection.release();
+      return res.status(404).json({ message: "Rapor tidak ditemukan" });
+    }
+
+    const rapor = raporRows[0];
+
+    // Ambil data siswa
+    const [siswaData] = await connection.query(
+      `SELECT id, nama_lengkap, nisn FROM users WHERE id = ? AND role = 'siswa'`,
+      [rapor.siswa_id]
+    );
+
+    if (siswaData.length === 0) {
+      connection.release();
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+    }
+
+    // Ambil semua nilai siswa
+    const [nilaiData] = await connection.query(
+      `SELECT 
+        mp.nama_mapel,
+        n.nilai_uts,
+        n.nilai_uas,
+        n.nilai_akhir,
+        n.komentar,
+        u.nama_lengkap as guru_nama
+       FROM nilai n
+       JOIN mata_pelajaran mp ON n.mapel_id = mp.id
+       JOIN users u ON n.guru_id = u.id
+       WHERE n.siswa_id = ? AND n.tahun_ajaran_id = ? AND n.kelas_id = ?
+       ORDER BY mp.nama_mapel ASC`,
+      [rapor.siswa_id, rapor.tahun_ajaran_id, rapor.kelas_id]
+    );
+
+    // Ambil hasil MBTI siswa
+    const [mbtiData] = await connection.query(
+      `SELECT mbti_type, deskripsi, gaya_belajar, 
+              rekomendasi_belajar_1, rekomendasi_belajar_2, rekomendasi_belajar_3
+       FROM mbti_hasil
+       WHERE siswa_id = ?
+       LIMIT 1`,
+      [rapor.siswa_id]
+    );
+
+    // Ambil data wali kelas
+    const [waliKelasData] = await connection.query(
+      `SELECT u.nama_lengkap, u.nip
+       FROM kelas k
+       JOIN users u ON k.wali_kelas_id = u.id
+       WHERE k.id = ?`,
+      [rapor.kelas_id]
     );
 
     connection.release();
 
-    if (!rows.length) {
-      return res.status(404).json({ message: "Rapor tidak ditemukan" });
-    }
+    // Compile data untuk PDF
+    const pdfData = {
+      siswa: {
+        nama_lengkap: siswaData[0].nama_lengkap,
+        nisn: siswaData[0].nisn,
+      },
+      kelas: {
+        nama_kelas: rapor.nama_kelas,
+      },
+      tahunAjaran: {
+        tahun: rapor.tahun_ajaran,
+        semester: rapor.semester === 1 ? "Ganjil" : "Genap",
+      },
+      nilai: nilaiData,
+      rataRata: rapor.rata_rata_nilai || 0,
+      mbti: mbtiData.length > 0 ? mbtiData[0] : null,
+      komentar: rapor.komentar_wali_kelas,
+      apresiasi: rapor.apresiasi_wali_kelas,
+      waliKelas:
+        waliKelasData.length > 0
+          ? waliKelasData[0]
+          : { nama_lengkap: "-", nip: "-" },
+    };
 
-    const rapor = rows[0];
-
-    const doc = new PDFDocument({ size: "A4", margin: 40 });
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="rapor_${rapor.id}.pdf"`
-    );
-    doc.pipe(res);
-
-    doc
-      .fontSize(18)
-      .font("Helvetica-Bold")
-      .text("Rapor Siswa", { align: "center" });
-    doc.moveDown();
-
-    doc.fontSize(12).font("Helvetica");
-    doc.text(`Nama: ${rapor.nama_siswa}`);
-    doc.text(`NISN: ${rapor.nisn}`);
-    doc.text(`Kelas: ${rapor.nama_kelas}`);
-    doc.text(`Tahun Ajaran: ${rapor.tahun_ajaran}`);
-    doc.text(
-      `Rata-rata Nilai: ${parseFloat(rapor.rata_rata_nilai).toFixed(2)}`
-    );
-    doc.moveDown();
-    if (rapor.komentar_wali_kelas) {
-      doc.text("Komentar Wali Kelas:");
-      doc.font("Helvetica-Oblique").text(rapor.komentar_wali_kelas);
-      doc.font("Helvetica");
-      doc.moveDown();
-    }
-    if (rapor.apresiasi_wali_kelas) {
-      doc.text("Apresiasi:");
-      doc.font("Helvetica-Oblique").text(rapor.apresiasi_wali_kelas);
-      doc.font("Helvetica");
-    }
-
-    doc.end();
+    // Generate PDF menggunakan generator yang lengkap
+    await generateRaporPDF(pdfData, res);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error exporting rapor PDF:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: error.message });
+    }
   }
 };
 

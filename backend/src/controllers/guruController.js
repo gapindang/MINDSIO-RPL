@@ -1,5 +1,6 @@
 const pool = require("../config/database");
 const { v4: uuidv4 } = require("uuid");
+const { generateRaporPDF } = require("../utils/pdfGenerator");
 
 const getKelasTeaching = async (req, res) => {
   try {
@@ -399,6 +400,130 @@ const getMBTISiswaInKelas = async (req, res) => {
   }
 };
 
+// Export Rapor PDF
+const exportRaporPDF = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const { siswaId } = req.params;
+    const connection = await pool.getConnection();
+
+    // Ambil data siswa
+    const [siswaData] = await connection.query(
+      `SELECT u.id, u.nama_lengkap, u.nisn, u.email
+       FROM users u WHERE u.id = ? AND u.role = 'siswa'`,
+      [siswaId]
+    );
+
+    if (siswaData.length === 0) {
+      connection.release();
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+    }
+
+    const siswa = siswaData[0];
+
+    // Ambil rapor siswa (tahun ajaran aktif)
+    // Guru bisa export rapor untuk siswa di kelas yang dia ajar
+    const [raporData] = await connection.query(
+      `SELECT r.*, k.nama_kelas, ta.tahun_ajaran, ta.semester
+       FROM rapor r
+       JOIN kelas k ON r.kelas_id = k.id
+       JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+       WHERE r.siswa_id = ? AND ta.is_aktif = TRUE
+       LIMIT 1`,
+      [siswaId]
+    );
+
+    if (raporData.length === 0) {
+      connection.release();
+      return res
+        .status(404)
+        .json({ message: "Rapor belum dibuat untuk siswa ini" });
+    }
+
+    const rapor = raporData[0];
+
+    // Ambil semua nilai siswa untuk tahun ajaran ini dengan guru yang tepat
+    const [nilaiData] = await connection.query(
+      `SELECT 
+        mp.nama_mapel,
+        n.nilai_uts,
+        n.nilai_uas,
+        n.nilai_akhir,
+        n.komentar,
+        u.nama_lengkap as guru_nama
+       FROM nilai n
+       JOIN mata_pelajaran mp ON n.mapel_id = mp.id
+       JOIN users u ON n.guru_id = u.id
+       WHERE n.siswa_id = ? AND n.tahun_ajaran_id = ? AND n.kelas_id = ?
+       ORDER BY mp.nama_mapel ASC`,
+      [siswaId, rapor.tahun_ajaran_id, rapor.kelas_id]
+    );
+
+    // Ambil hasil MBTI siswa
+    const [mbtiData] = await connection.query(
+      `SELECT mbti_type, deskripsi, gaya_belajar, 
+              rekomendasi_belajar_1, rekomendasi_belajar_2, rekomendasi_belajar_3
+       FROM mbti_hasil
+       WHERE siswa_id = ?
+       LIMIT 1`,
+      [siswaId]
+    );
+
+    // Ambil data wali kelas
+    const [waliKelasData] = await connection.query(
+      `SELECT u.nama_lengkap, u.nip
+       FROM kelas k
+       JOIN users u ON k.wali_kelas_id = u.id
+       WHERE k.id = ?`,
+      [rapor.kelas_id]
+    );
+
+    connection.release();
+
+    // Compile data untuk PDF
+    const pdfData = {
+      siswa: {
+        nama_lengkap: siswa.nama_lengkap,
+        nisn: siswa.nisn,
+      },
+      kelas: {
+        nama_kelas: rapor.nama_kelas,
+      },
+      tahunAjaran: {
+        tahun: rapor.tahun_ajaran,
+        semester: rapor.semester === 1 ? "Ganjil" : "Genap",
+      },
+      nilai: nilaiData,
+      rataRata: rapor.rata_rata_nilai || 0,
+      mbti: mbtiData.length > 0 ? mbtiData[0] : null,
+      komentar: rapor.komentar_wali_kelas,
+      apresiasi: rapor.apresiasi_wali_kelas,
+      waliKelas:
+        waliKelasData.length > 0
+          ? waliKelasData[0]
+          : { nama_lengkap: "-", nip: "-" },
+    };
+
+    // Log untuk debugging
+    console.log("PDF Data:", {
+      siswaId,
+      nilaiCount: nilaiData.length,
+      hasMBTI: mbtiData.length > 0,
+      rataRata: pdfData.rataRata,
+      komentar: pdfData.komentar,
+      apresiasi: pdfData.apresiasi,
+    });
+
+    // Generate PDF
+    await generateRaporPDF(pdfData, res);
+  } catch (error) {
+    console.error("Error exporting rapor PDF:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+};
+
 module.exports = {
   getKelasTeaching,
   getSiswaInKelas,
@@ -408,4 +533,5 @@ module.exports = {
   getMapelForClass,
   getRaporIdBySiswa,
   getMBTISiswaInKelas,
+  exportRaporPDF,
 };

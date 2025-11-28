@@ -168,6 +168,10 @@ export const guruAPI = {
 
   exportRaporExcel: (raporId) =>
     api.get(`/guru/rapor/${raporId}/excel`, { responseType: "blob" }),
+
+  // Export rapor PDF by siswa ID (lebih mudah digunakan)
+  exportRaporPDFBySiswa: (siswaId) =>
+    api.get(`/guru/rapor/siswa/${siswaId}/pdf`, { responseType: "blob" }),
 };
 
 // ============================================================
@@ -187,6 +191,8 @@ export const siswaAPI = {
   uploadMBTIResult: (mbtiData) => api.post("/siswa/mbti", mbtiData),
 
   getKelasInfo: () => api.get("/siswa/kelas-info"),
+
+  downloadRaporPDF: () => api.get("/siswa/rapor/pdf", { responseType: "blob" }),
 };
 
 // ============================================================

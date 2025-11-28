@@ -56,38 +56,41 @@ const CetakRapor = () => {
             setExporting(true);
             setError(null);
 
-            // Get rapor ID first
-            const raporResponse = await guruAPI.getRaporIdBySiswa(
-                siswaData.id,
-                kelasInfo.tahun_ajaran_id
-            );
-
-            const raporId = raporResponse.data.raporId;
             const dateStr = new Date().toISOString().slice(0, 10);
             const safeName = siswaData.nama_lengkap.replace(/[^a-z0-9-_]+/gi, '_').toLowerCase();
 
             let response;
             let filename;
 
-            switch (format) {
-                case 'pdf':
-                    response = await guruAPI.exportRaporPDF(raporId);
-                    filename = `rapor_${safeName}_${dateStr}.pdf`;
-                    break;
-                case 'csv':
-                    response = await guruAPI.exportRaporCSV(raporId);
-                    filename = `rapor_${safeName}_${dateStr}.csv`;
-                    break;
-                case 'json':
-                    response = await guruAPI.exportRaporJSON(raporId);
-                    filename = `rapor_${safeName}_${dateStr}.json`;
-                    break;
-                case 'excel':
-                    response = await guruAPI.exportRaporExcel(raporId);
-                    filename = `rapor_${safeName}_${dateStr}.xlsx`;
-                    break;
-                default:
-                    throw new Error('Format tidak dikenali');
+            // Untuk PDF, gunakan endpoint baru yang lebih mudah
+            if (format === 'pdf') {
+                response = await guruAPI.exportRaporPDFBySiswa(siswaData.id);
+                filename = `rapor_${safeName}_${dateStr}.pdf`;
+            } else {
+                // Untuk format lain, tetap gunakan cara lama dengan rapor ID
+                const raporResponse = await guruAPI.getRaporIdBySiswa(
+                    siswaData.id,
+                    kelasInfo.tahun_ajaran_id
+                );
+
+                const raporId = raporResponse.data.raporId;
+
+                switch (format) {
+                    case 'csv':
+                        response = await guruAPI.exportRaporCSV(raporId);
+                        filename = `rapor_${safeName}_${dateStr}.csv`;
+                        break;
+                    case 'json':
+                        response = await guruAPI.exportRaporJSON(raporId);
+                        filename = `rapor_${safeName}_${dateStr}.json`;
+                        break;
+                    case 'excel':
+                        response = await guruAPI.exportRaporExcel(raporId);
+                        filename = `rapor_${safeName}_${dateStr}.xlsx`;
+                        break;
+                    default:
+                        throw new Error('Format tidak dikenali');
+                }
             }
 
             downloadFile(response.data, filename);

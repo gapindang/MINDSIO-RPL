@@ -21,73 +21,20 @@ const Navbar = () => {
     return (
         <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm border-b z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16">
-                    {/* Logo */}
-                    <div className="flex items-center space-x-8">
+                <div className="flex items-center h-16">
+                    {/* Sidebar Toggle Placeholder - Will be rendered by StudentSidebar (Mobile only) */}
+                    <div className="w-12 flex-shrink-0 md:hidden" id="sidebar-toggle-placeholder"></div>
+
+                    {/* Logo - Centered on mobile, left on desktop */}
+                    <div className="flex-1 md:flex-none flex justify-center md:justify-start">
                         <Link to="/" className="flex items-center space-x-2">
                             <BookOpen className="h-6 w-6 text-blue-600" />
                             <span className="text-xl font-semibold text-gray-900">Mindsio</span>
                         </Link>
-
-                        {/* Desktop Navigation */}
-                        <div className="hidden md:flex space-x-4">
-                            {!isAuthenticated && (
-                                <Link
-                                    to="/"
-                                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
-                                        }`}
-                                >
-                                    Beranda
-                                </Link>
-                            )}
-
-                            {isAuthenticated && user?.role === 'guru' && (
-                                <Link
-                                    to="/teacher/dashboard"
-                                    className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/teacher/dashboard') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
-                                        }`}
-                                >
-                                    Dasbor
-                                </Link>
-                            )}
-
-                            {isAuthenticated && user?.role === 'siswa' && (
-                                <>
-                                    <Link
-                                        to="/student/dashboard"
-                                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/dashboard') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        Dasbor
-                                    </Link>
-                                    <Link
-                                        to="/student/grades"
-                                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/grades') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        Nilai Saya
-                                    </Link>
-                                    <Link
-                                        to="/student/mbti-test"
-                                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/mbti-test') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        Tes MBTI
-                                    </Link>
-                                    <Link
-                                        to="/student/my-results"
-                                        className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/student/my-results') ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        Hasil Saya
-                                    </Link>
-                                </>
-                            )}
-                        </div>
                     </div>
 
                     {/* Right Side - Auth Section */}
-                    <div className="hidden md:flex items-center space-x-4">
+                    <div className="hidden md:flex items-center space-x-4 ml-auto">
                         {isAuthenticated ? (
                             <>
                                 <div className="flex items-center space-x-2">

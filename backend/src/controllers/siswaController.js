@@ -217,10 +217,125 @@ const getKelasInfo = async (req, res) => {
   }
 };
 
+const downloadRaporPDF = async (req, res) => {
+  try {
+    const siswaId = req.user.id;
+    const { generateRaporPDF } = require("../utils/pdfGenerator");
+    const connection = await pool.getConnection();
+
+    // Get rapor data untuk tahun ajaran aktif
+    const [rapor] = await connection.query(
+      `SELECT 
+        r.id,
+        r.rata_rata_nilai,
+        r.komentar_wali_kelas,
+        r.apresiasi_wali_kelas,
+        u.nama_lengkap as siswa_nama,
+        u.nisn,
+        k.nama_kelas,
+        ta.tahun_ajaran,
+        ta.semester,
+        wk.nama_lengkap as wali_kelas_nama,
+        wk.nip as wali_kelas_nip
+      FROM rapor r
+      JOIN users u ON r.siswa_id = u.id
+      JOIN kelas k ON r.kelas_id = k.id
+      JOIN tahun_ajaran ta ON r.tahun_ajaran_id = ta.id
+      LEFT JOIN users wk ON k.wali_kelas_id = wk.id
+      WHERE r.siswa_id = ? AND ta.is_aktif = TRUE`,
+      [siswaId]
+    );
+
+    if (rapor.length === 0) {
+      connection.release();
+      return res.status(404).json({ message: "Rapor tidak ditemukan" });
+    }
+
+    // Get nilai data
+    const [nilai] = await connection.query(
+      `SELECT 
+        n.nilai_uts,
+        n.nilai_uas,
+        n.nilai_akhir,
+        mp.nama_mapel,
+        u.nama_lengkap as guru_nama
+      FROM nilai n
+      JOIN mata_pelajaran mp ON n.mapel_id = mp.id
+      JOIN users u ON n.guru_id = u.id
+      JOIN tahun_ajaran ta ON n.tahun_ajaran_id = ta.id
+      WHERE n.siswa_id = ? AND ta.is_aktif = TRUE
+      ORDER BY mp.nama_mapel ASC`,
+      [siswaId]
+    );
+
+    // Get MBTI data
+    const [mbti] = await connection.query(
+      `SELECT 
+        mbti_type,
+        deskripsi,
+        gaya_belajar,
+        rekomendasi_belajar_1,
+        rekomendasi_belajar_2,
+        rekomendasi_belajar_3
+      FROM mbti_hasil
+      WHERE siswa_id = ?`,
+      [siswaId]
+    );
+
+    connection.release();
+
+    // Compile PDF data
+    const pdfData = {
+      siswa: {
+        nama_lengkap: rapor[0].siswa_nama,
+        nisn: rapor[0].nisn,
+      },
+      kelas: {
+        nama_kelas: rapor[0].nama_kelas,
+      },
+      tahunAjaran: {
+        tahun: rapor[0].tahun_ajaran,
+        semester: rapor[0].semester,
+      },
+      nilai: nilai.map((n) => ({
+        nama_mapel: n.nama_mapel,
+        nilai_uts: n.nilai_uts,
+        nilai_uas: n.nilai_uas,
+        nilai_akhir: n.nilai_akhir,
+        guru_nama: n.guru_nama,
+      })),
+      rataRata: rapor[0].rata_rata_nilai,
+      mbti:
+        mbti.length > 0
+          ? {
+              mbti_type: mbti[0].mbti_type,
+              deskripsi: mbti[0].deskripsi,
+              gaya_belajar: mbti[0].gaya_belajar,
+              rekomendasi_belajar_1: mbti[0].rekomendasi_belajar_1,
+              rekomendasi_belajar_2: mbti[0].rekomendasi_belajar_2,
+              rekomendasi_belajar_3: mbti[0].rekomendasi_belajar_3,
+            }
+          : null,
+      komentar: rapor[0].komentar_wali_kelas,
+      apresiasi: rapor[0].apresiasi_wali_kelas,
+      waliKelas: {
+        nama_lengkap: rapor[0].wali_kelas_nama,
+        nip: rapor[0].wali_kelas_nip,
+      },
+    };
+
+    await generateRaporPDF(pdfData, res);
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getNilaiRapor,
   getRaporSummary,
   getMBTIResult,
   saveMBTIResult,
   getKelasInfo,
+  downloadRaporPDF,
 };

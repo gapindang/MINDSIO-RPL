@@ -6,6 +6,7 @@ const {
   getMBTIResult,
   saveMBTIResult,
   getKelasInfo,
+  downloadRaporPDF,
 } = require("../controllers/siswaController");
 
 const router = express.Router();
@@ -18,5 +19,6 @@ router.get("/rapor-summary", getRaporSummary);
 router.get("/mbti", getMBTIResult);
 router.post("/mbti", saveMBTIResult);
 router.get("/kelas-info", getKelasInfo);
+router.get("/rapor/pdf", downloadRaporPDF);
 
 module.exports = router;

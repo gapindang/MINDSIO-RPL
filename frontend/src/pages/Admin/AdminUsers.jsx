@@ -249,6 +249,7 @@ const AdminUsers = () => {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                             >
                                 <option value="all">Semua Role</option>
+                                <option value="admin">Admin</option>
                                 <option value="guru">Guru</option>
                                 <option value="siswa">Siswa</option>
                             </select>
