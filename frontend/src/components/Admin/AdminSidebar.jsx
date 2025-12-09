@@ -40,6 +40,11 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
         },
         {
             icon: MdAssignment,
+            label: 'Penugasan Guru',
+            path: '/admin/assign-guru',
+        },
+        {
+            icon: MdAssignment,
             label: 'Laporan Rapor',
             path: '/admin/laporan',
         },

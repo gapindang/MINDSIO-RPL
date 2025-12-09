@@ -27,6 +27,7 @@ import AdminUsers from './pages/Admin/AdminUsers';
 import AdminMataPelajaran from './pages/Admin/AdminMataPelajaran';
 import AdminTahunAjaran from './pages/Admin/AdminTahunAjaran';
 import AdminLaporan from './pages/Admin/AdminLaporan';
+import AdminAssignGuru from './pages/Admin/AdminAssignGuru';
 
 function App() {
   return (
@@ -146,6 +147,14 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="admin">
                   <AdminMataPelajaran />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/assign-guru"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminAssignGuru />
                 </ProtectedRoute>
               }
             />

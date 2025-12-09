@@ -7,6 +7,7 @@ const getKelasTeaching = async (req, res) => {
     const guruId = req.user.id;
     const connection = await pool.getConnection();
 
+    // Kembalikan kelas yang guru ini wali kelasnya atau dia mengajar (guru_mapel)
     const [kelas] = await connection.query(
       `SELECT DISTINCT
         k.id,
@@ -18,7 +19,39 @@ const getKelasTeaching = async (req, res) => {
       FROM kelas k
       LEFT JOIN siswa_kelas sk ON k.id = sk.kelas_id
       JOIN tahun_ajaran ta ON k.tahun_ajaran_id = ta.id
-      WHERE k.wali_kelas_id = ? AND ta.is_aktif = TRUE
+      LEFT JOIN guru_mapel gm ON gm.kelas_id = k.id AND gm.tahun_ajaran_id = ta.id
+      WHERE (k.wali_kelas_id = ? OR gm.guru_id = ?) AND ta.is_aktif = TRUE
+      GROUP BY k.id
+      ORDER BY k.nama_kelas ASC`,
+      [guruId, guruId]
+    );
+
+    connection.release();
+    res.json(kelas);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Kembalikan kelas yang guru **mengajar** (berdasarkan guru_mapel) pada tahun ajaran aktif
+const getKelasMengajar = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const connection = await pool.getConnection();
+
+    const [kelas] = await connection.query(
+      `SELECT DISTINCT
+        k.id,
+        k.nama_kelas,
+        k.tingkat,
+        ta.id as tahun_ajaran_id,
+        ta.tahun_ajaran,
+        COUNT(DISTINCT sk.siswa_id) as jumlah_siswa
+      FROM guru_mapel gm
+      JOIN kelas k ON gm.kelas_id = k.id
+      JOIN tahun_ajaran ta ON gm.tahun_ajaran_id = ta.id
+      LEFT JOIN siswa_kelas sk ON k.id = sk.kelas_id
+      WHERE gm.guru_id = ? AND ta.is_aktif = TRUE
       GROUP BY k.id
       ORDER BY k.nama_kelas ASC`,
       [guruId]
@@ -37,15 +70,24 @@ const getSiswaInKelas = async (req, res) => {
     const { kelasId } = req.params;
     const connection = await pool.getConnection();
 
-    // Verifikasi guru mengajar kelas ini
-    const [verif] = await connection.query(
+    // Verifikasi: guru boleh akses jika dia wali kelas ATAU dia mengajar mapel di kelas ini
+    const [isWali] = await connection.query(
       "SELECT id FROM kelas WHERE id = ? AND wali_kelas_id = ?",
       [kelasId, guruId]
     );
 
-    if (verif.length === 0) {
-      connection.release();
-      return res.status(403).json({ message: "Akses ditolak" });
+    if (isWali.length === 0) {
+      const [isPengajar] = await connection.query(
+        `SELECT gm.id FROM guru_mapel gm
+         JOIN tahun_ajaran ta ON gm.tahun_ajaran_id = ta.id
+         WHERE gm.kelas_id = ? AND gm.guru_id = ? AND ta.is_aktif = TRUE LIMIT 1`,
+        [kelasId, guruId]
+      );
+
+      if (isPengajar.length === 0) {
+        connection.release();
+        return res.status(403).json({ message: "Akses ditolak" });
+      }
     }
 
     const [siswa] = await connection.query(
@@ -99,8 +141,34 @@ const inputNilai = async (req, res) => {
     );
 
     if (verif.length === 0) {
+      // Tambahan logging untuk membantu debugging: cek apakah guru punya penugasan lain pada kelas/tahun ini
+      try {
+        const [otherAssignments] = await connection.query(
+          `SELECT gm.id, gm.mapel_id, mp.nama_mapel FROM guru_mapel gm
+           LEFT JOIN mata_pelajaran mp ON gm.mapel_id = mp.id
+           WHERE gm.guru_id = ? AND gm.kelas_id = ? AND gm.tahun_ajaran_id = ?`,
+          [guruId, kelasId, tahunAjaranId]
+        );
+        console.warn(
+          `inputNilai: akses ditolak untuk guru=${guruId}, siswa=${siswaId}, mapel=${mapelId}, kelas=${kelasId}, tahun=${tahunAjaranId}. assignmentsCount=${otherAssignments.length}`
+        );
+        if (otherAssignments.length > 0)
+          console.warn(
+            "existing assignments for this guru in kelas:",
+            otherAssignments
+          );
+      } catch (logErr) {
+        console.error(
+          "inputNilai: gagal mengecek penugasan lain untuk guru:",
+          logErr
+        );
+      }
+
       connection.release();
-      return res.status(403).json({ message: "Akses ditolak" });
+      return res.status(403).json({
+        message:
+          "Akses ditolak: Anda tidak ditugaskan mengajar mata pelajaran ini di kelas/tahun ajaran yang dipilih",
+      });
     }
 
     // Hitung nilai akhir
@@ -173,15 +241,24 @@ const getDashboardKelas = async (req, res) => {
     const { kelasId } = req.params;
     const connection = await pool.getConnection();
 
-    // Verifikasi guru mengajar kelas ini
-    const [verif] = await connection.query(
+    // Verifikasi: guru boleh akses jika dia wali kelas ATAU dia mengajar mapel di kelas ini
+    const [isWali] = await connection.query(
       "SELECT id FROM kelas WHERE id = ? AND wali_kelas_id = ?",
       [kelasId, guruId]
     );
 
-    if (verif.length === 0) {
-      connection.release();
-      return res.status(403).json({ message: "Akses ditolak" });
+    if (isWali.length === 0) {
+      const [isPengajar] = await connection.query(
+        `SELECT gm.id FROM guru_mapel gm
+         JOIN tahun_ajaran ta ON gm.tahun_ajaran_id = ta.id
+         WHERE gm.kelas_id = ? AND gm.guru_id = ? AND ta.is_aktif = TRUE LIMIT 1`,
+        [kelasId, guruId]
+      );
+
+      if (isPengajar.length === 0) {
+        connection.release();
+        return res.status(403).json({ message: "Akses ditolak" });
+      }
     }
 
     // Statistik kelas
@@ -231,15 +308,20 @@ const createRapor = async (req, res) => {
 
     const connection = await pool.getConnection();
 
-    // Verifikasi guru mengajar kelas ini
-    const [verif] = await connection.query(
+    // Verifikasi akses: hanya wali kelas yang boleh melihat MBTI siswa di kelas ini
+    const [isWali] = await connection.query(
       "SELECT id FROM kelas WHERE id = ? AND wali_kelas_id = ?",
       [kelasId, guruId]
     );
 
-    if (verif.length === 0) {
+    if (isWali.length === 0) {
       connection.release();
-      return res.status(403).json({ message: "Akses ditolak" });
+      return res
+        .status(403)
+        .json({
+          message:
+            "tidak memiliki akses mbti ke kelas ini, karena anda bukan wali kelasnya",
+        });
     }
 
     // Hitung rata-rata nilai
@@ -400,6 +482,111 @@ const getMBTISiswaInKelas = async (req, res) => {
   }
 };
 
+// Get all students (for teacher UI) - limited fields
+const getAllSiswa = async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    const [siswa] = await connection.query(
+      "SELECT id, nama_lengkap, nisn, username, email FROM users WHERE role = 'siswa' ORDER BY nama_lengkap ASC"
+    );
+    connection.release();
+    res.json(siswa);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Assign a student to a class (by wali kelas/guru)
+const assignStudentToKelas = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const { siswaId, kelasId, no_urut } = req.body;
+
+    if (!siswaId || !kelasId) {
+      return res.status(400).json({ message: "Data tidak lengkap" });
+    }
+
+    const connection = await pool.getConnection();
+
+    // Verify guru is wali of the class
+    const [verif] = await connection.query(
+      "SELECT id FROM kelas WHERE id = ? AND wali_kelas_id = ?",
+      [kelasId, guruId]
+    );
+
+    if (verif.length === 0) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    // Verify siswa exists and is role 'siswa'
+    const [siswa] = await connection.query(
+      "SELECT id FROM users WHERE id = ? AND role = 'siswa'",
+      [siswaId]
+    );
+    if (siswa.length === 0) {
+      connection.release();
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+    }
+
+    // Check if already assigned
+    const [existing] = await connection.query(
+      "SELECT id FROM siswa_kelas WHERE siswa_id = ? AND kelas_id = ?",
+      [siswaId, kelasId]
+    );
+
+    if (existing.length > 0) {
+      connection.release();
+      return res
+        .status(400)
+        .json({ message: "Siswa sudah terdaftar di kelas ini" });
+    }
+
+    const id = uuidv4();
+    await connection.query(
+      "INSERT INTO siswa_kelas (id, siswa_id, kelas_id, no_urut) VALUES (?, ?, ?, ?)",
+      [id, siswaId, kelasId, no_urut || null]
+    );
+
+    connection.release();
+    res
+      .status(201)
+      .json({ message: "Siswa berhasil ditambahkan ke kelas", id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Unassign a student from a class (by wali kelas/guru)
+const unassignStudentFromKelas = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const { siswaId, kelasId } = req.params;
+    const connection = await pool.getConnection();
+
+    // Verify guru is wali of the class
+    const [verif] = await connection.query(
+      "SELECT id FROM kelas WHERE id = ? AND wali_kelas_id = ?",
+      [kelasId, guruId]
+    );
+
+    if (verif.length === 0) {
+      connection.release();
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    await connection.query(
+      "DELETE FROM siswa_kelas WHERE siswa_id = ? AND kelas_id = ?",
+      [siswaId, kelasId]
+    );
+
+    connection.release();
+    res.json({ message: "Siswa berhasil dikeluarkan dari kelas" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Export Rapor PDF
 const exportRaporPDF = async (req, res) => {
   try {
@@ -526,6 +713,7 @@ const exportRaporPDF = async (req, res) => {
 
 module.exports = {
   getKelasTeaching,
+  getKelasMengajar,
   getSiswaInKelas,
   inputNilai,
   getDashboardKelas,
@@ -534,4 +722,7 @@ module.exports = {
   getRaporIdBySiswa,
   getMBTISiswaInKelas,
   exportRaporPDF,
+  assignStudentToKelas,
+  unassignStudentFromKelas,
+  getAllSiswa,
 };

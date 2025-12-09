@@ -13,6 +13,9 @@ const {
   createKelas,
   updateKelas,
   deleteKelas,
+  assignGuruMapel,
+  unassignGuruMapel,
+  getGuruMapelByKelas,
   getAllTahunAjaran,
   createTahunAjaran,
   updateTahunAjaran,
@@ -20,6 +23,8 @@ const {
   getDashboard,
   getAllRapor,
   getRaporById,
+  assignStudentToKelas,
+  unassignStudentFromKelas,
 } = require("../controllers/adminController");
 
 const {
@@ -53,6 +58,14 @@ router.get("/kelas", getAllKelas);
 router.post("/kelas", createKelas);
 router.put("/kelas/:kelasId", updateKelas);
 router.delete("/kelas/:kelasId", deleteKelas);
+// Assign/unassign siswa to kelas
+router.post("/kelas/assign", assignStudentToKelas);
+router.delete("/kelas/assign/:siswaId/:kelasId", unassignStudentFromKelas);
+
+// Assign/unassign guru to mapel/kelas
+router.post("/guru-mapel", assignGuruMapel);
+router.delete("/guru-mapel/:id", unassignGuruMapel);
+router.get("/guru-mapel", getGuruMapelByKelas);
 
 router.get("/tahun-ajaran", getAllTahunAjaran);
 router.post("/tahun-ajaran", createTahunAjaran);

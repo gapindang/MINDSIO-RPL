@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import StatCard from '../../components/StatCard';
 import { adminAPI } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AlertCircle, Loader } from 'lucide-react';
 import { MdPeople, MdSchool, MdBusiness, MdAdminPanelSettings } from 'react-icons/md';
@@ -13,6 +14,7 @@ const AdminDashboard = () => {
     const [error, setError] = useState(null);
 
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchDashboardData();
@@ -163,19 +165,19 @@ const AdminDashboard = () => {
                         <div className="bg-white rounded-lg shadow p-6">
                             <h2 className="text-lg font-bold text-gray-900 mb-4">Aksi Cepat</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                                <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
+                                <button onClick={() => navigate('/admin/users', { state: { openAddModal: true, defaultRole: 'guru' } })} className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
                                     <p className="text-blue-600 font-semibold">Tambah Guru</p>
                                 </button>
-                                <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors">
+                                <button onClick={() => navigate('/admin/users', { state: { openAddModal: true, defaultRole: 'siswa' } })} className="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors">
                                     <p className="text-green-600 font-semibold">Tambah Siswa</p>
                                 </button>
-                                <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors">
+                                <button onClick={() => navigate('/admin/mata-pelajaran')} className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors">
                                     <p className="text-purple-600 font-semibold">Tambah Mapel</p>
                                 </button>
-                                <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg text-center transition-colors">
+                                <button onClick={() => navigate('/admin/tahun-ajaran')} className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg text-center transition-colors">
                                     <p className="text-orange-600 font-semibold">Atur Kelas</p>
                                 </button>
-                                <button className="p-4 bg-red-50 hover:bg-red-100 rounded-lg text-center transition-colors">
+                                <button onClick={() => navigate('/admin/laporan')} className="p-4 bg-red-50 hover:bg-red-100 rounded-lg text-center transition-colors">
                                     <p className="text-red-600 font-semibold">Lihat Laporan</p>
                                 </button>
                             </div>

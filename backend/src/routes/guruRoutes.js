@@ -2,6 +2,7 @@ const express = require("express");
 const { authenticateToken, authorizeRole } = require("../middleware/auth");
 const {
   getKelasTeaching,
+  getKelasMengajar,
   getSiswaInKelas,
   inputNilai,
   getDashboardKelas,
@@ -10,6 +11,9 @@ const {
   getRaporIdBySiswa,
   getMBTISiswaInKelas,
   exportRaporPDF,
+  assignStudentToKelas,
+  unassignStudentFromKelas,
+  getAllSiswa,
 } = require("../controllers/guruController");
 
 const router = express.Router();
@@ -18,6 +22,7 @@ const router = express.Router();
 router.use(authenticateToken, authorizeRole("guru"));
 
 router.get("/kelas", getKelasTeaching);
+router.get("/kelas/mengajar", getKelasMengajar);
 router.get("/kelas/:kelasId/siswa", getSiswaInKelas);
 router.post("/nilai", inputNilai);
 router.get("/kelas/:kelasId/dashboard", getDashboardKelas);
@@ -26,6 +31,11 @@ router.get("/kelas/:kelasId/mapel", getMapelForClass);
 router.get("/rapor/by-siswa", getRaporIdBySiswa);
 router.get("/kelas/:kelasId/mbti", getMBTISiswaInKelas);
 router.get("/rapor/siswa/:siswaId/pdf", exportRaporPDF);
+
+// Allow wali kelas to assign/unassign siswa in their kelas
+router.post("/kelas/assign", assignStudentToKelas);
+router.delete("/kelas/assign/:siswaId/:kelasId", unassignStudentFromKelas);
+router.get("/siswa", getAllSiswa);
 
 // Export per-rapor for guru (wali kelas)
 const {

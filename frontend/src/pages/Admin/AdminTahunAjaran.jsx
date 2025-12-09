@@ -127,6 +127,8 @@ const AdminTahunAjaran = () => {
         try {
             if (modalMode === 'add') {
                 await adminAPI.createTahunAjaran(tahunFormData);
+            } else if (modalMode === 'edit' && selectedTahun) {
+                await adminAPI.updateTahunAjaran(selectedTahun.id, tahunFormData);
             }
             fetchData();
             handleCloseModal();
@@ -140,11 +142,33 @@ const AdminTahunAjaran = () => {
         try {
             if (modalMode === 'add') {
                 await adminAPI.createKelas(kelasFormData);
+            } else if (modalMode === 'edit' && selectedTahun) {
+                await adminAPI.updateKelas(selectedTahun.id, kelasFormData);
             }
             fetchData();
             handleCloseModal();
         } catch (err) {
             setError(err.response?.data?.message || 'Gagal menyimpan kelas');
+        }
+    };
+
+    const handleDeleteTahun = async (tahunId) => {
+        if (!window.confirm('Yakin ingin menghapus tahun ajaran ini?')) return;
+        try {
+            await adminAPI.deleteTahunAjaran(tahunId);
+            fetchData();
+        } catch (err) {
+            setError('Gagal menghapus tahun ajaran');
+        }
+    };
+
+    const handleDeleteKelas = async (kelasId) => {
+        if (!window.confirm('Yakin ingin menghapus kelas ini?')) return;
+        try {
+            await adminAPI.deleteKelas(kelasId);
+            fetchData();
+        } catch (err) {
+            setError('Gagal menghapus kelas');
         }
     };
 
@@ -265,10 +289,10 @@ const AdminTahunAjaran = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                <button onClick={() => handleOpenModal('edit', tahun)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
                                                     <MdEdit size={18} />
                                                 </button>
-                                                <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                                                <button onClick={() => handleDeleteTahun(tahun.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
                                                     <MdDelete size={18} />
                                                 </button>
                                             </div>
@@ -299,11 +323,11 @@ const AdminTahunAjaran = () => {
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                                    <button onClick={() => handleOpenModal('edit', kelas)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
                                         <MdEdit size={18} />
                                         Edit
                                     </button>
-                                    <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
+                                    <button onClick={() => handleDeleteKelas(kelas.id)} className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
                                         <MdDelete size={18} />
                                         Hapus
                                     </button>

@@ -30,8 +30,20 @@ const MBTISiswa = () => {
             setMbtiData(mbtiRes.data);
             const currentKelas = kelasRes.data.find(k => k.id === kelasId);
             setKelasInfo(currentKelas);
+            setError(null);
         } catch (err) {
-            setError('Gagal memuat data MBTI');
+            // Jika server mengembalikan 403, gunakan pesan server jika ada.
+            // Jika server mengirim 'Akses ditolak' (generik), ganti dengan pesan yang diminta.
+            if (err?.response?.status === 403) {
+                const serverMsg = err.response?.data?.message || '';
+                if (serverMsg && serverMsg !== 'Akses ditolak') {
+                    setError(serverMsg);
+                } else {
+                    setError('tidak memiliki akses mbti ke kelas ini, karena anda bukan wali kelasnya');
+                }
+            } else {
+                setError('Gagal memuat data MBTI');
+            }
             console.error(err);
         } finally {
             setLoading(false);

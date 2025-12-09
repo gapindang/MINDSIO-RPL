@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import { adminAPI } from '../../services/api';
 import { AlertCircle, Loader, Search } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { MdAdd, MdEdit, MdDelete, MdVisibility, MdVisibilityOff, MdRefresh } from 'react-icons/md';
 
 const AdminUsers = () => {
@@ -28,9 +29,22 @@ const AdminUsers = () => {
     });
 
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+    const location = useLocation();
 
     useEffect(() => {
         fetchUsers();
+        // Auto-open add modal when navigated from dashboard quick actions
+        if (location?.state?.openAddModal) {
+            const defaultRole = location.state.defaultRole || 'siswa';
+            setFormData(prev => ({ ...prev, role: defaultRole }));
+            handleOpenModal('add');
+            try {
+                // clear history state to avoid re-opening when navigating back
+                window.history.replaceState({}, document.title);
+            } catch (e) {
+                // ignore
+            }
+        }
     }, []);
 
     useEffect(() => {

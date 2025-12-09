@@ -93,6 +93,12 @@ export const adminAPI = {
   // Dashboard
   getDashboard: () => api.get("/admin/dashboard"),
 
+  // Guru-Mapel assignments
+  assignGuruMapel: (data) => api.post("/admin/guru-mapel", data),
+  unassignGuruMapel: (id) => api.delete(`/admin/guru-mapel/${id}`),
+  getGuruMapelByKelas: (kelasId) =>
+    api.get("/admin/guru-mapel", { params: { kelasId } }),
+
   // Rapor & Export
   getAllRapor: () => api.get("/admin/rapor"),
 
@@ -138,6 +144,8 @@ export const adminAPI = {
 
 export const guruAPI = {
   getKelas: () => api.get("/guru/kelas"),
+  // Kelas yang guru ajar (digunakan untuk input nilai)
+  getKelasMengajar: () => api.get("/guru/kelas/mengajar"),
 
   getKelasTeaching: () => api.get("/guru/kelas"),
 
@@ -172,6 +180,12 @@ export const guruAPI = {
   // Export rapor PDF by siswa ID (lebih mudah digunakan)
   exportRaporPDFBySiswa: (siswaId) =>
     api.get(`/guru/rapor/siswa/${siswaId}/pdf`, { responseType: "blob" }),
+  // Assign/unassign siswa to kelas (wali kelas)
+  assignStudentToKelas: (data) => api.post("/guru/kelas/assign", data),
+  unassignStudentFromKelas: (siswaId, kelasId) =>
+    api.delete(`/guru/kelas/assign/${siswaId}/${kelasId}`),
+  // Get all students for selection
+  getAllSiswa: () => api.get("/guru/siswa"),
 };
 
 // ============================================================

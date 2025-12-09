@@ -230,6 +230,7 @@ const getAllKelas = async (req, res) => {
         k.nama_kelas,
         k.tingkat,
         u.nama_lengkap as wali_kelas_nama,
+        ta.id as tahun_ajaran_id,
         ta.tahun_ajaran,
         COUNT(DISTINCT sk.siswa_id) as jumlah_siswa
       FROM kelas k
@@ -268,6 +269,63 @@ const createKelas = async (req, res) => {
       message: "Kelas berhasil dibuat",
       id: kelasId,
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Assign a student to a class (admin)
+const assignStudentToKelas = async (req, res) => {
+  try {
+    const { siswaId, kelasId, no_urut } = req.body;
+
+    if (!siswaId || !kelasId) {
+      return res.status(400).json({ message: "Data tidak lengkap" });
+    }
+
+    const connection = await pool.getConnection();
+
+    // Check if already assigned
+    const [existing] = await connection.query(
+      "SELECT id FROM siswa_kelas WHERE siswa_id = ? AND kelas_id = ?",
+      [siswaId, kelasId]
+    );
+
+    if (existing.length > 0) {
+      connection.release();
+      return res
+        .status(400)
+        .json({ message: "Siswa sudah terdaftar di kelas ini" });
+    }
+
+    const id = uuidv4();
+    await connection.query(
+      "INSERT INTO siswa_kelas (id, siswa_id, kelas_id, no_urut) VALUES (?, ?, ?, ?)",
+      [id, siswaId, kelasId, no_urut || null]
+    );
+
+    connection.release();
+    res
+      .status(201)
+      .json({ message: "Siswa berhasil ditambahkan ke kelas", id });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Unassign a student from a class (admin)
+const unassignStudentFromKelas = async (req, res) => {
+  try {
+    const { siswaId, kelasId } = req.params;
+    const connection = await pool.getConnection();
+
+    await connection.query(
+      "DELETE FROM siswa_kelas WHERE siswa_id = ? AND kelas_id = ?",
+      [siswaId, kelasId]
+    );
+
+    connection.release();
+    res.json({ message: "Siswa berhasil dikeluarkan dari kelas" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -353,6 +411,108 @@ const createTahunAjaran = async (req, res) => {
   }
 };
 
+// Assign a guru to a mapel in a kelas for a tahun ajaran (admin)
+// If `guruId` is omitted, derive from `mata_pelajaran.guru_id`.
+const assignGuruMapel = async (req, res) => {
+  try {
+    let { guruId, mapelId, kelasId, tahunAjaranId } = req.body;
+    if (!mapelId || !kelasId || !tahunAjaranId) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Data tidak lengkap: mapelId, kelasId, tahunAjaranId diperlukan",
+        });
+    }
+
+    const connection = await pool.getConnection();
+
+    // derive guruId from mata_pelajaran if not provided
+    if (!guruId) {
+      const [mp] = await connection.query(
+        "SELECT guru_id FROM mata_pelajaran WHERE id = ?",
+        [mapelId]
+      );
+      if (mp.length === 0 || !mp[0].guru_id) {
+        connection.release();
+        return res
+          .status(400)
+          .json({
+            message:
+              "Mapel tidak memiliki guru utama; berikan guruId secara eksplisit",
+          });
+      }
+      guruId = mp[0].guru_id;
+    }
+
+    // check duplicate assignment for same mapel+kelas+tahun
+    const [exists] = await connection.query(
+      "SELECT id FROM guru_mapel WHERE mapel_id = ? AND kelas_id = ? AND tahun_ajaran_id = ?",
+      [mapelId, kelasId, tahunAjaranId]
+    );
+    if (exists.length > 0) {
+      connection.release();
+      return res
+        .status(409)
+        .json({
+          message:
+            "Penugasan untuk mata pelajaran ini di kelas tersebut sudah ada",
+        });
+    }
+
+    const id = uuidv4();
+    await connection.query(
+      "INSERT INTO guru_mapel (id, guru_id, mapel_id, kelas_id, tahun_ajaran_id) VALUES (?, ?, ?, ?, ?)",
+      [id, guruId, mapelId, kelasId, tahunAjaranId]
+    );
+
+    connection.release();
+    res
+      .status(201)
+      .json({
+        message: "Mata pelajaran berhasil ditugaskan ke kelas",
+        id,
+        guruId,
+      });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Unassign guru_mapel by id
+const unassignGuruMapel = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await pool.getConnection();
+    await connection.query("DELETE FROM guru_mapel WHERE id = ?", [id]);
+    connection.release();
+    res.json({ message: "Penugasan dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get assignments for a kelas
+const getGuruMapelByKelas = async (req, res) => {
+  try {
+    const { kelasId } = req.query;
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      `SELECT gm.id, gm.guru_id, u.nama_lengkap as guru_nama, gm.mapel_id, mp.nama_mapel, gm.tahun_ajaran_id
+       FROM guru_mapel gm
+       JOIN users u ON gm.guru_id = u.id
+       JOIN mata_pelajaran mp ON gm.mapel_id = mp.id
+       WHERE gm.kelas_id = ?
+       ORDER BY mp.nama_mapel ASC`,
+      [kelasId]
+    );
+    connection.release();
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const updateTahunAjaran = async (req, res) => {
   try {
     const { tahunId } = req.params;
@@ -406,11 +566,23 @@ const getDashboard = async (req, res) => {
         (SELECT COUNT(*) FROM users WHERE role = 'siswa') as jumlah_siswa,
         (SELECT COUNT(*) FROM kelas) as jumlah_kelas,
         (SELECT COUNT(*) FROM mata_pelajaran) as jumlah_mapel,
-        (SELECT COUNT(DISTINCT siswa_id) FROM mbti_hasil) as mbti_selesai
+        (SELECT COUNT(DISTINCT siswa_id) FROM mbti_hasil) as mbti_selesai,
+        (SELECT tahun_ajaran FROM tahun_ajaran WHERE is_aktif = TRUE LIMIT 1) as tahun_ajaran_aktif
     `);
 
     connection.release();
-    res.json(stats[0]);
+
+    // Normalize response keys for frontend
+    const s = stats[0] || {};
+    res.json({
+      totalAdmin: Number(s.jumlah_admin || 0),
+      totalGuru: Number(s.jumlah_guru || 0),
+      totalSiswa: Number(s.jumlah_siswa || 0),
+      totalKelas: Number(s.jumlah_kelas || 0),
+      totalMapel: Number(s.jumlah_mapel || 0),
+      mbtiSelesai: Number(s.mbti_selesai || 0),
+      tahunAjaranAktif: s.tahun_ajaran_aktif || null,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -524,6 +696,9 @@ module.exports = {
   createKelas,
   updateKelas,
   deleteKelas,
+  assignGuruMapel,
+  unassignGuruMapel,
+  getGuruMapelByKelas,
   getAllTahunAjaran,
   createTahunAjaran,
   updateTahunAjaran,
@@ -532,4 +707,6 @@ module.exports = {
   getAllRapor,
   getRaporById,
   resetMBTIResult,
+  assignStudentToKelas,
+  unassignStudentFromKelas,
 };
