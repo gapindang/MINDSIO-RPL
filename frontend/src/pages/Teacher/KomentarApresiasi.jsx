@@ -21,6 +21,7 @@ const KomentarApresiasi = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [kelasInfo, setKelasInfo] = useState(null);
+    const [isWali, setIsWali] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -29,15 +30,27 @@ const KomentarApresiasi = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
+            // Also check whether current guru is wali for this kelas
             const [siswaRes, kelasRes] = await Promise.all([
                 guruAPI.getSiswaInKelas(kelasId),
-                guruAPI.getKelas()
+                guruAPI.getKelas(),
+                // call is-wali; if not wali this will throw 403 which we handle below
+                guruAPI.getIsWaliForKelas(kelasId)
             ]);
             setSiswa(siswaRes.data);
             const currentKelas = kelasRes.data.find(k => k.id === kelasId);
             setKelasInfo(currentKelas);
+            setIsWali(true);
         } catch (err) {
-            setError('Gagal memuat data');
+            // If server returned 403 for is-wali, show the friendly message and mark not-wali
+            if (err?.response?.status === 403) {
+                const serverMsg = err.response?.data?.message || 'Akses ditolak';
+                if (serverMsg && serverMsg !== 'Akses ditolak') setError(serverMsg);
+                else setError('tidak memiliki akses komentar/apresiasi ke kelas ini, karena anda bukan wali kelasnya');
+                setIsWali(false);
+            } else {
+                setError('Gagal memuat data');
+            }
             console.error(err);
         } finally {
             setLoading(false);
@@ -177,82 +190,88 @@ const KomentarApresiasi = () => {
                     {/* Form */}
                     <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
                         {selectedSiswa ? (
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                {/* Siswa Info */}
-                                <div className="bg-green-50 p-4 rounded-lg">
-                                    <h3 className="font-semibold text-green-900 mb-1">Siswa Terpilih</h3>
-                                    <p className="text-green-800 font-medium">{selectedSiswa.nama_lengkap}</p>
-                                    <p className="text-sm text-green-600">NISN: {selectedSiswa.nisn}</p>
+                            isWali === false ? (
+                                <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+                                    Anda tidak memiliki akses untuk memberikan komentar atau apresiasi pada kelas ini karena Anda bukan wali kelasnya.
                                 </div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    {/* Siswa Info */}
+                                    <div className="bg-green-50 p-4 rounded-lg">
+                                        <h3 className="font-semibold text-green-900 mb-1">Siswa Terpilih</h3>
+                                        <p className="text-green-800 font-medium">{selectedSiswa.nama_lengkap}</p>
+                                        <p className="text-sm text-green-600">NISN: {selectedSiswa.nisn}</p>
+                                    </div>
 
-                                {/* Info Box */}
-                                <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
-                                    <div className="flex items-start gap-3">
-                                        <MessageSquare className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                        <div className="text-sm text-blue-900">
-                                            <p className="font-semibold mb-1">Tips Memberikan Feedback</p>
-                                            <ul className="list-disc list-inside space-y-1 text-blue-800">
-                                                <li>Berikan komentar yang konstruktif dan spesifik</li>
-                                                <li>Apresiasi pencapaian dan usaha siswa</li>
-                                                <li>Berikan motivasi untuk terus berkembang</li>
-                                            </ul>
+                                    {/* Info Box */}
+                                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
+                                        <div className="flex items-start gap-3">
+                                            <MessageSquare className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                            <div className="text-sm text-blue-900">
+                                                <p className="font-semibold mb-1">Tips Memberikan Feedback</p>
+                                                <ul className="list-disc list-inside space-y-1 text-blue-800">
+                                                    <li>Berikan komentar yang konstruktif dan spesifik</li>
+                                                    <li>Apresiasi pencapaian dan usaha siswa</li>
+                                                    <li>Berikan motivasi untuk terus berkembang</li>
+                                                </ul>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Komentar */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Komentar Wali Kelas
-                                    </label>
-                                    <textarea
-                                        value={formData.komentar}
-                                        onChange={(e) => handleInputChange('komentar', e.target.value)}
-                                        rows={5}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        placeholder="Contoh: Siswa menunjukkan perkembangan yang baik dalam memahami materi. Perlu lebih aktif dalam diskusi kelas..."
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Berikan saran dan catatan perkembangan siswa
-                                    </p>
-                                </div>
+                                    {/* Komentar */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Komentar Wali Kelas
+                                        </label>
+                                        <textarea
+                                            value={formData.komentar}
+                                            onChange={(e) => handleInputChange('komentar', e.target.value)}
+                                            rows={5}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            placeholder="Contoh: Siswa menunjukkan perkembangan yang baik dalam memahami materi. Perlu lebih aktif dalam diskusi kelas..."
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Berikan saran dan catatan perkembangan siswa
+                                        </p>
+                                    </div>
 
-                                {/* Apresiasi */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Apresiasi & Motivasi
-                                    </label>
-                                    <textarea
-                                        value={formData.apresiasi}
-                                        onChange={(e) => handleInputChange('apresiasi', e.target.value)}
-                                        rows={5}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        placeholder="Contoh: Terus pertahankan semangat belajarmu! Kemampuan analisis yang baik, tingkatkan lagi partisipasi di kelas..."
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Berikan apresiasi positif dan motivasi untuk siswa
-                                    </p>
-                                </div>
+                                    {/* Apresiasi */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Apresiasi & Motivasi
+                                        </label>
+                                        <textarea
+                                            value={formData.apresiasi}
+                                            onChange={(e) => handleInputChange('apresiasi', e.target.value)}
+                                            rows={5}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            placeholder="Contoh: Terus pertahankan semangat belajarmu! Kemampuan analisis yang baik, tingkatkan lagi partisipasi di kelas..."
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Berikan apresiasi positif dan motivasi untuk siswa
+                                        </p>
+                                    </div>
 
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
-                                >
-                                    {saving ? (
-                                        <>
-                                            <Loader className="w-5 h-5 animate-spin" />
-                                            Menyimpan...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-5 h-5" />
-                                            Simpan Komentar & Apresiasi
-                                        </>
-                                    )}
-                                </button>
-                            </form>
+                                    {/* Submit Button */}
+                                    <button
+                                        type="submit"
+                                        disabled={saving}
+                                        className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold"
+                                    >
+                                        {saving ? (
+                                            <>
+                                                <Loader className="w-5 h-5 animate-spin" />
+                                                Menyimpan...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-5 h-5" />
+                                                Simpan Komentar & Apresiasi
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            )
                         ) : (
                             <div className="text-center py-12">
                                 <MessageSquare className="mx-auto text-6xl text-gray-400 mb-4" />

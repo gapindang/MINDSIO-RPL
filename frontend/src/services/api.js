@@ -163,6 +163,7 @@ export const guruAPI = {
     api.get(`/guru/rapor/by-siswa`, { params: { siswaId, tahunAjaranId } }),
 
   getMBTISiswaInKelas: (kelasId) => api.get(`/guru/kelas/${kelasId}/mbti`),
+  getIsWaliForKelas: (kelasId) => api.get(`/guru/kelas/${kelasId}/is-wali`),
 
   // Export per-rapor (akses untuk guru wali kelas)
   exportRaporCSV: (raporId) =>

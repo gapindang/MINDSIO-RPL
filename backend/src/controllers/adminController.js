@@ -85,41 +85,86 @@ const createUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
+  let connection;
   try {
     const { userId } = req.params;
-    const { username, email, nama_lengkap, role, nisn, nip, is_active } =
-      req.body;
+    const {
+      username,
+      email,
+      nama_lengkap,
+      role,
+      nisn,
+      nip,
+      is_active,
+      password,
+    } = req.body;
 
-    const connection = await pool.getConnection();
+    connection = await pool.getConnection();
 
-    await connection.query(
-      `UPDATE users 
-      SET username = ?, email = ?, nama_lengkap = ?, role = ?, nisn = ?, nip = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?`,
-      [
-        username,
-        email,
-        nama_lengkap,
-        role,
-        nisn || null,
-        nip || null,
-        is_active,
-        userId,
-      ]
+    // Check if username/email already used by another user
+    const [conflict] = await connection.query(
+      "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ? LIMIT 1",
+      [username, email, userId]
     );
 
+    if (conflict.length > 0) {
+      connection.release();
+      return res
+        .status(400)
+        .json({
+          message: "Username atau email sudah digunakan oleh pengguna lain",
+        });
+    }
+
+    // Normalize is_active to boolean (if provided)
+    const activeVal = is_active === undefined ? undefined : Boolean(is_active);
+
+    // Update main fields
+    await connection.query(
+      `UPDATE users SET username = ?, email = ?, nama_lengkap = ?, role = ?, nisn = ?, nip = ?, updated_at = CURRENT_TIMESTAMP ${
+        activeVal === undefined ? "" : ", is_active = ?"
+      } WHERE id = ?`,
+      activeVal === undefined
+        ? [
+            username,
+            email,
+            nama_lengkap,
+            role,
+            nisn || null,
+            nip || null,
+            userId,
+          ]
+        : [
+            username,
+            email,
+            nama_lengkap,
+            role,
+            nisn || null,
+            nip || null,
+            activeVal,
+            userId,
+          ]
+    );
+
+    // If password provided and non-empty, update hashed password
+    if (password && password.trim().length > 0) {
+      const hashed = await hashPassword(password);
+      await connection.query(`UPDATE users SET password = ? WHERE id = ?`, [
+        hashed,
+        userId,
+      ]);
+    }
+
     const [updated] = await connection.query(
-      "SELECT id, username, email, role, nama_lengkap FROM users WHERE id = ?",
+      "SELECT id, username, email, role, nama_lengkap, nisn, nip, is_active FROM users WHERE id = ?",
       [userId]
     );
 
     connection.release();
 
-    res.json({
-      message: "User berhasil diperbarui",
-      user: updated[0],
-    });
+    res.json({ message: "User berhasil diperbarui", user: updated[0] });
   } catch (error) {
+    if (connection) connection.release();
     res.status(500).json({ message: error.message });
   }
 };
@@ -417,12 +462,10 @@ const assignGuruMapel = async (req, res) => {
   try {
     let { guruId, mapelId, kelasId, tahunAjaranId } = req.body;
     if (!mapelId || !kelasId || !tahunAjaranId) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Data tidak lengkap: mapelId, kelasId, tahunAjaranId diperlukan",
-        });
+      return res.status(400).json({
+        message:
+          "Data tidak lengkap: mapelId, kelasId, tahunAjaranId diperlukan",
+      });
     }
 
     const connection = await pool.getConnection();
@@ -435,12 +478,10 @@ const assignGuruMapel = async (req, res) => {
       );
       if (mp.length === 0 || !mp[0].guru_id) {
         connection.release();
-        return res
-          .status(400)
-          .json({
-            message:
-              "Mapel tidak memiliki guru utama; berikan guruId secara eksplisit",
-          });
+        return res.status(400).json({
+          message:
+            "Mapel tidak memiliki guru utama; berikan guruId secara eksplisit",
+        });
       }
       guruId = mp[0].guru_id;
     }
@@ -452,12 +493,10 @@ const assignGuruMapel = async (req, res) => {
     );
     if (exists.length > 0) {
       connection.release();
-      return res
-        .status(409)
-        .json({
-          message:
-            "Penugasan untuk mata pelajaran ini di kelas tersebut sudah ada",
-        });
+      return res.status(409).json({
+        message:
+          "Penugasan untuk mata pelajaran ini di kelas tersebut sudah ada",
+      });
     }
 
     const id = uuidv4();
@@ -467,13 +506,11 @@ const assignGuruMapel = async (req, res) => {
     );
 
     connection.release();
-    res
-      .status(201)
-      .json({
-        message: "Mata pelajaran berhasil ditugaskan ke kelas",
-        id,
-        guruId,
-      });
+    res.status(201).json({
+      message: "Mata pelajaran berhasil ditugaskan ke kelas",
+      id,
+      guruId,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

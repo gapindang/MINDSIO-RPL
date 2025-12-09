@@ -316,11 +316,37 @@ const createRapor = async (req, res) => {
 
     if (isWali.length === 0) {
       connection.release();
+      return res.status(403).json({
+        message:
+          "tidak memiliki akses mbti ke kelas ini, karena anda bukan wali kelasnya",
+      });
+    }
+
+    // Pastikan siswa memang terdaftar di kelas ini
+    const [siswaInKelas] = await connection.query(
+      "SELECT id FROM siswa_kelas WHERE siswa_id = ? AND kelas_id = ? LIMIT 1",
+      [siswaId, kelasId]
+    );
+
+    if (siswaInKelas.length === 0) {
+      connection.release();
       return res
-        .status(403)
+        .status(400)
+        .json({ message: "Siswa tidak terdaftar di kelas ini" });
+    }
+
+    // Pastikan tahun ajaran yang dikirim sesuai dengan kelas
+    const [kelasCheck] = await connection.query(
+      "SELECT id FROM kelas WHERE id = ? AND tahun_ajaran_id = ? LIMIT 1",
+      [kelasId, tahunAjaranId]
+    );
+
+    if (kelasCheck.length === 0) {
+      connection.release();
+      return res
+        .status(400)
         .json({
-          message:
-            "tidak memiliki akses mbti ke kelas ini, karena anda bukan wali kelasnya",
+          message: "Tahun ajaran tidak cocok dengan kelas yang dipilih",
         });
     }
 
@@ -477,6 +503,35 @@ const getMBTISiswaInKelas = async (req, res) => {
 
     connection.release();
     res.json(mbtiData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Cek apakah user saat ini adalah wali kelas untuk kelas yang diberikan
+const isWaliForKelas = async (req, res) => {
+  try {
+    const guruId = req.user.id;
+    const { kelasId } = req.params;
+    const connection = await pool.getConnection();
+
+    const [isWali] = await connection.query(
+      "SELECT id FROM kelas WHERE id = ? AND wali_kelas_id = ?",
+      [kelasId, guruId]
+    );
+
+    connection.release();
+
+    if (isWali.length === 0) {
+      return res
+        .status(403)
+        .json({
+          message:
+            "tidak memiliki akses komentar/apresiasi ke kelas ini, karena anda bukan wali kelasnya",
+        });
+    }
+
+    res.json({ isWali: true });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -725,4 +780,5 @@ module.exports = {
   assignStudentToKelas,
   unassignStudentFromKelas,
   getAllSiswa,
+  isWaliForKelas,
 };

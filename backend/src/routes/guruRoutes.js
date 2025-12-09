@@ -10,6 +10,7 @@ const {
   getMapelForClass,
   getRaporIdBySiswa,
   getMBTISiswaInKelas,
+  isWaliForKelas,
   exportRaporPDF,
   assignStudentToKelas,
   unassignStudentFromKelas,
@@ -30,6 +31,7 @@ router.post("/rapor", createRapor);
 router.get("/kelas/:kelasId/mapel", getMapelForClass);
 router.get("/rapor/by-siswa", getRaporIdBySiswa);
 router.get("/kelas/:kelasId/mbti", getMBTISiswaInKelas);
+router.get("/kelas/:kelasId/is-wali", isWaliForKelas);
 router.get("/rapor/siswa/:siswaId/pdf", exportRaporPDF);
 
 // Allow wali kelas to assign/unassign siswa in their kelas
