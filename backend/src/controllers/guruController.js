@@ -720,6 +720,23 @@ const exportRaporPDF = async (req, res) => {
       [rapor.kelas_id]
     );
 
+    // Calculate rata-rata if it's 0 or null
+    let rataRata = rapor.rata_rata_nilai;
+    if (!rataRata || parseFloat(rataRata) === 0) {
+      if (nilaiData.length > 0) {
+        const nilaiAkhirArray = nilaiData
+          .map(n => Number(n.nilai_akhir))
+          .filter(n => !isNaN(n) && n !== null);
+        if (nilaiAkhirArray.length > 0) {
+          rataRata = (nilaiAkhirArray.reduce((a, b) => a + b, 0) / nilaiAkhirArray.length).toFixed(2);
+        } else {
+          rataRata = "0.00";
+        }
+      } else {
+        rataRata = "0.00";
+      }
+    }
+
     connection.release();
 
     // Compile data untuk PDF
@@ -736,7 +753,7 @@ const exportRaporPDF = async (req, res) => {
         semester: rapor.semester === 1 ? "Ganjil" : "Genap",
       },
       nilai: nilaiData,
-      rataRata: rapor.rata_rata_nilai || 0,
+      rataRata: String(rataRata),
       mbti: mbtiData.length > 0 ? mbtiData[0] : null,
       komentar: rapor.komentar_wali_kelas,
       apresiasi: rapor.apresiasi_wali_kelas,

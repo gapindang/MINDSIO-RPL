@@ -93,14 +93,16 @@ const StudentRapor = () => {
                                                 <span>{rapor.nama_kelas}</span>
                                             </div>
                                         </div>
-                                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${rapor.rata_rata_nilai >= 85 ? 'bg-green-100 text-green-800' :
-                                                rapor.rata_rata_nilai >= 75 ? 'bg-blue-100 text-blue-800' :
-                                                    rapor.rata_rata_nilai >= 60 ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-red-100 text-red-800'
+                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                rapor.rata_rata_nilai && rapor.rata_rata_nilai >= 85 ? 'bg-green-100 text-green-800' :
+                                                rapor.rata_rata_nilai && rapor.rata_rata_nilai >= 75 ? 'bg-blue-100 text-blue-800' :
+                                                rapor.rata_rata_nilai && rapor.rata_rata_nilai >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                                                rapor.rata_rata_nilai ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                                             }`}>
-                                            {rapor.rata_rata_nilai >= 85 ? 'Sangat Baik' :
-                                                rapor.rata_rata_nilai >= 75 ? 'Baik' :
-                                                    rapor.rata_rata_nilai >= 60 ? 'Cukup' : 'Kurang'}
+                                            {rapor.rata_rata_nilai && rapor.rata_rata_nilai >= 85 ? 'Sangat Baik' :
+                                                rapor.rata_rata_nilai && rapor.rata_rata_nilai >= 75 ? 'Baik' :
+                                                rapor.rata_rata_nilai && rapor.rata_rata_nilai >= 60 ? 'Cukup' :
+                                                rapor.rata_rata_nilai ? 'Kurang' : 'Menunggu'}
                                         </div>
                                     </div>
 
@@ -127,11 +129,11 @@ const StudentRapor = () => {
 
                                     {/* Tanggal */}
                                     <div className="text-xs text-gray-500 mb-4">
-                                        Dibuat: {new Date(rapor.tanggal_dibuat).toLocaleDateString('id-ID', {
+                                        Dibuat: {rapor.tanggal_dibuat ? new Date(rapor.tanggal_dibuat).toLocaleDateString('id-ID', {
                                             day: 'numeric',
                                             month: 'long',
                                             year: 'numeric'
-                                        })}
+                                        }) : 'Belum dibuat'}
                                     </div>
 
                                     {/* Download Button */}

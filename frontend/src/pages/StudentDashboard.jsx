@@ -20,12 +20,25 @@ const StudentDashboard = () => {
                 setLoading(true);
                 // Fetch all data in parallel
                 const [mbtiRes, raporRes, nilaiRes, kelasRes] = await Promise.all([
-                    siswaAPI.getMBTIResult().catch(() => null),
-                    siswaAPI.getRaporSummary().catch(() => null),
-                    siswaAPI.getNilaiRapor().catch(() => ({ data: [] })),
-                    siswaAPI.getKelasInfo().catch(() => null),
+                    siswaAPI.getMBTIResult().catch((err) => {
+                        console.error('MBTI Error:', err?.response?.data || err?.message);
+                        return null;
+                    }),
+                    siswaAPI.getRaporSummary().catch((err) => {
+                        console.error('Rapor Error:', err?.response?.data || err?.message);
+                        return null;
+                    }),
+                    siswaAPI.getNilaiRapor().catch((err) => {
+                        console.error('Nilai Error:', err?.response?.data || err?.message);
+                        return { data: [] };
+                    }),
+                    siswaAPI.getKelasInfo().catch((err) => {
+                        console.error('Kelas Error:', err?.response?.data || err?.message);
+                        return null;
+                    }),
                 ]);
 
+                console.log('Rapor Response:', raporRes?.data);
                 setMbtiData(mbtiRes?.data || null);
                 setRaporData(raporRes?.data?.[0] || null);
                 setNilaiData(nilaiRes?.data || []);
@@ -45,16 +58,21 @@ const StudentDashboard = () => {
     const mbtiType = mbtiData?.mbti_type || '-';
     const mbtiName = mbtiData?.deskripsi?.split('-')[0]?.trim() || 'Belum ada';
 
+    // Handle case when rata_rata_nilai is 0 or null
+    const displayRataRata = rataRata && rataRata > 0 ? rataRata : null;
+    const ipk = displayRataRata ? (displayRataRata / 25).toFixed(2) : '-';
+    const rataRataDisplay = displayRataRata ? displayRataRata.toFixed(1) : '-';
+
     const stats = [
-        { title: 'IPK Saat Ini', value: rataRata ? (rataRata / 25).toFixed(2) : '-', subtitle: kelasInfo?.tahun_ajaran || 'Tahun ajaran aktif', icon: TrendingUp, color: 'blue' },
+        { title: 'IPK Saat Ini', value: ipk, subtitle: kelasInfo?.tahun_ajaran || 'Tahun ajaran aktif', icon: TrendingUp, color: 'blue' },
         { title: 'Mata Pelajaran', value: jumlahMapel.toString(), subtitle: 'Aktif semester ini', icon: BookOpen, color: 'purple' },
-        { title: 'Nilai Rata-rata', value: rataRata ? rataRata.toFixed(1) : '-', subtitle: 'Di semua mata pelajaran', icon: Award, color: 'yellow' },
+        { title: 'Nilai Rata-rata', value: rataRataDisplay, subtitle: 'Di semua mata pelajaran', icon: Award, color: 'yellow' },
         { title: 'Tipe MBTI', value: mbtiType, subtitle: mbtiName, icon: Sparkles, color: 'green' },
     ];
 
     // Generate GPA trend from rapor history
-    const gpaData = rataRata ? [
-        { month: 'Semester', gpa: (rataRata / 25).toFixed(2) }
+    const gpaData = displayRataRata ? [
+        { month: 'Semester', gpa: (displayRataRata / 25).toFixed(2) }
     ] : [];
 
     // Convert nilai to subject performance

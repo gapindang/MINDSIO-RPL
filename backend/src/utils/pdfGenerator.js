@@ -143,9 +143,18 @@ const generateRaporPDF = async (data, res) => {
     // Rata-rata
     doc.font("Helvetica-Bold").fontSize(11);
     doc.text("Rata-rata Nilai", col1 + 5, yPos);
-    const rataRataValue = data.rataRata
-      ? Number(data.rataRata).toFixed(2)
-      : "0.00";
+    let rataRataValue = "0.00";
+    if (data.rataRata !== null && data.rataRata !== undefined && data.rataRata !== "") {
+      rataRataValue = Number(data.rataRata).toFixed(2);
+    } else if (data.nilai && data.nilai.length > 0) {
+      // Calculate from nilai array if rataRata not provided
+      const nilaiAkhirArray = data.nilai
+        .map(n => Number(n.nilai_akhir))
+        .filter(n => !isNaN(n));
+      if (nilaiAkhirArray.length > 0) {
+        rataRataValue = (nilaiAkhirArray.reduce((a, b) => a + b, 0) / nilaiAkhirArray.length).toFixed(2);
+      }
+    }
     doc.text(`: ${rataRataValue}`, col2, yPos);
     yPos += 25;
 
